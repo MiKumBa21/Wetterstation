@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 
-const API_URL = "http://192.168.0.50/data"; // Passe die URL an
+const API_URL = "http://192.168.0.50/data"; 
 
+// Interface wird erstellt: Jede Eigenschaft kann entweder eine Zahl oder null sein
 interface WeatherData {
   temp: number | null;
   hygro: number | null;
@@ -9,6 +10,7 @@ interface WeatherData {
   uv: number | null;
 }
 
+// Verwaltet das Laden der Wetterdaten, Fehlerzustände und stellt die Sensordaten im UI dar.
 export default function Wetterstation() {
   const [data, setData] = useState<WeatherData>({
     temp: null,
@@ -16,6 +18,11 @@ export default function Wetterstation() {
     lighting: null,
     uv: null,
   });
+
+
+  // Verwaltet das Laden der Wetterdaten:
+  // setzt den Ladezustand, ruft die API auf,
+  // speichert die Daten im State und behandelt Fehler
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,6 +41,8 @@ export default function Wetterstation() {
     }
   };
 
+  // Lädt die Wetterdaten beim Start des Components und aktualisiert sie anschließend automatisch alle 5 Sekunden
+  // Das Intervall wird beim Entfernen des Components wieder gestoppt
   useEffect(() => {
     fetchData();
     const interval = setInterval(fetchData, 5000); // alle 5 Sekunden aktualisieren
@@ -62,6 +71,7 @@ export default function Wetterstation() {
           <p>{data.uv !== null ? data.uv : "--"}</p>
         </div>
 
+      {/* Button zum manuellen Aktualisieren der Wetterdaten */}
         <button
           className="mt-4 w-full rounded-2xl shadow-md bg-blue-500 text-white py-2 hover:bg-blue-600 transition-colors"
           onClick={fetchData}
