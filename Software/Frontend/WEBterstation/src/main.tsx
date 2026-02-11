@@ -9,5 +9,5 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Wetterstation></Wetterstation>
     
-  </StrictMode>,
+  </StrictMode>
 )
