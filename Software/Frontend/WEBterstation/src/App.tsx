@@ -56,10 +56,10 @@ export default function Wetterstation() {
           {error && <p className="text-red-500 text-sm">{error}</p>}
 
           {/* Sensordaten */}
-          <p><strong>Temperatur:</strong> {data.temp ?? "--"} °C</p>
-          <p><strong>Luftfeuchtigkeit:</strong> {data.hygro ?? "--"} %</p>
-          <p><strong>Beleuchtung:</strong> {data.lighting ?? "--"} lx</p>
-          <p><strong>UV-Index:</strong> {data.uv ?? "--"}</p>
+          <p><strong>🌡️ Temperatur:</strong> {data.temp ?? "--"} °C</p>
+          <p><strong>💧 Luftfeuchtigkeit:</strong> {data.hygro ?? "--"} %</p>
+          <p><strong>💡 Beleuchtung:</strong> {data.lighting ?? "--"} lx</p>
+          <p><strong>☀️ UV-Index:</strong> {data.uv ?? "--"}</p>
 
           <button onClick={fetchData}>Manuell aktualisieren</button>
         </div>
