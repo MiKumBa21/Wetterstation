@@ -11,6 +11,7 @@ interface WeatherData {
   uv: number | null;
 }
 export default function Wetterstation() {
+  const [menuOpen, setMenuOpen] = useState(false);
   const [data, setData] = useState<WeatherData>({
     temp: null,
     hygro: null,
@@ -41,7 +42,29 @@ export default function Wetterstation() {
     return () => clearInterval(interval);
   }, []);
 
-  return (
+  return (<div>
+
+    {/* Burger Button */}
+    <button
+      onClick={() => setMenuOpen(!menuOpen)}
+    >
+      ☰
+    </button>
+
+    {/* Menü */}
+    {menuOpen && (
+      <div className="fixed top-0 left-0 h-full w-64 bg-white shadow-xl p-6 z-40">
+        <h2 className="text-xl font-bold mb-6">Menü</h2>
+
+        <ul>
+          <li>Dashboard</li>
+          <li>Sensoren</li>
+          <li>Einstellungen</li>
+          <li>Info</li>
+        </ul>
+      </div>
+    )}
+
     <div className="container">
       <div className="side">
         <img src="/sonne.jpg" alt="Sonne" />
@@ -49,6 +72,7 @@ export default function Wetterstation() {
 
       <div className="dashboard">
         <h1>Wetterstation Dashboard</h1>
+
 
         {/* Lade- und Fehleranzeige */}
         <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl p-6 grid gap-4">
@@ -61,6 +85,8 @@ export default function Wetterstation() {
           <p><strong>💡 Beleuchtung:</strong> {data.lighting ?? "--"} lx</p>
           <p><strong>☀️ UV-Index:</strong> {data.uv ?? "--"}</p>
 
+
+
           <button onClick={fetchData}>Manuell aktualisieren</button>
         </div>
       </div>
@@ -68,6 +94,7 @@ export default function Wetterstation() {
       <div className="side">
         <img src="/sturm.jpg" alt="Sturm" />
       </div>
+    </div>
     </div>
   );
 }
