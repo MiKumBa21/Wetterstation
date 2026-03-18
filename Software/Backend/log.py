@@ -4,7 +4,7 @@ from datetime import datetime
 from pathlib import Path
 
 # Log-Pfad
-log_path = "../../wetterstation.log"
+log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "wetterstation.log")
 
 # Logger konfigurieren
 logger = logging.getLogger("Wetterstation")
