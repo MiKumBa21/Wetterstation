@@ -1,1 +1,18 @@
-2026-03-04 15:09:37 - Wetterstation - ERROR - Die Datenbank konnte nicht gefunden werden!
+2026-03-16 11:29:34 - Wetterstation - INFO - Database already exists, skipping initialization.
+2026-03-16 11:29:42 - Wetterstation - INFO - Database already exists, skipping initialization.
+2026-03-16 11:29:43 - Wetterstation - INFO - Database already exists, skipping initialization.
+2026-03-16 11:29:44 - Wetterstation - INFO - Database already exists, skipping initialization.
+2026-03-16 11:29:44 - Wetterstation - INFO - Database already exists, skipping initialization.
+2026-03-16 11:29:45 - Wetterstation - INFO - Database already exists, skipping initialization.
+2026-03-16 11:29:45 - Wetterstation - INFO - Database already exists, skipping initialization.
+2026-03-16 11:29:45 - Wetterstation - INFO - Database already exists, skipping initialization.
+2026-03-16 11:29:46 - Wetterstation - INFO - Database already exists, skipping initialization.
+2026-03-16 11:29:46 - Wetterstation - INFO - Database already exists, skipping initialization.
+2026-03-16 11:29:46 - Wetterstation - INFO - Database already exists, skipping initialization.
+2026-03-16 11:29:50 - Wetterstation - INFO - Database already exists, skipping initialization.
+2026-03-16 11:31:08 - Wetterstation - INFO - Database already exists, skipping initialization.
+2026-03-16 13:19:25 - Wetterstation - INFO - Database already exists, skipping initialization.
+2026-03-16 13:19:26 - Wetterstation - INFO - Database already exists, skipping initialization.
+2026-03-18 14:05:17 - Wetterstation - INFO - Tabellen und Index bereit.
+2026-03-18 14:05:17 - Wetterstation - INFO - Seed-Daten eingetragen (Sensoren & Datentypen).
+2026-03-18 14:05:17 - Wetterstation - INFO - Datenbank erfolgreich initialisiert: ../WetterstationData.db
