@@ -1,10 +1,9 @@
 import os
 import logging
-from datetime import datetime
 from pathlib import Path
+from config import LOG_PATH  # config liegt im selben Ordner (backend/)
 
-# Log-Pfad
-log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "wetterstation.log")
+log_path = str(LOG_PATH)
 
 # Logger konfigurieren
 logger = logging.getLogger("Wetterstation")

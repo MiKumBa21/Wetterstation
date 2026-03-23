@@ -1,0 +1,69 @@
+2026-03-23 13:09:51 - Wetterstation - INFO - Wetterstation wird gestartet...
+2026-03-23 13:09:51 - Wetterstation - ERROR - Unerwarteter Fehler bei der DB-Initialisierung - name 'os' is not defined
+Traceback (most recent call last):
+  File "/run/media/mbrueckl/rootfs/home/admin/Wetterstation/database/scripts/init_db.py", line 16, in init_DB
+    db_dir = os.path.dirname(db_path)
+             ^^
+NameError: name 'os' is not defined. Did you forget to import 'os'?
+2026-03-23 13:10:47 - Wetterstation - INFO - Wetterstation wird gestartet...
+2026-03-23 13:10:47 - Wetterstation - ERROR - Unerwarteter Fehler bei der DB-Initialisierung - name 'os' is not defined
+Traceback (most recent call last):
+  File "/run/media/mbrueckl/rootfs/home/admin/Wetterstation/database/scripts/init_db.py", line 16, in init_DB
+    db_dir = os.path.dirname(db_path)
+             ^^
+NameError: name 'os' is not defined. Did you forget to import 'os'?
+2026-03-23 13:11:33 - Wetterstation - INFO - Wetterstation wird gestartet...
+2026-03-23 13:11:33 - Wetterstation - INFO - Tabellen und Indizes bereit.
+2026-03-23 13:11:33 - Wetterstation - INFO - Seed-Daten eingetragen (Sensoren & Datentypen).
+2026-03-23 13:11:33 - Wetterstation - INFO - Datenbank erfolgreich initialisiert: /run/media/mbrueckl/rootfs/home/admin/Wetterstation/database/Wetterstaion.db
+2026-03-23 13:11:33 - Wetterstation - INFO - System bereit.
+2026-03-23 13:13:06 - Wetterstation - INFO - Wetterstation wird gestartet...
+2026-03-23 13:13:06 - Wetterstation - INFO - Tabellen und Indizes bereit.
+2026-03-23 13:13:06 - Wetterstation - INFO - Seed-Daten eingetragen (Sensoren & Datentypen).
+2026-03-23 13:13:06 - Wetterstation - INFO - Datenbank erfolgreich initialisiert: /run/media/mbrueckl/rootfs/home/admin/Wetterstation/database/Wetterstaion.db
+2026-03-23 13:13:06 - Wetterstation - INFO - System bereit.
+2026-03-23 13:13:11 - Wetterstation - INFO - Wetterstation wird gestartet...
+2026-03-23 13:13:11 - Wetterstation - INFO - Tabellen und Indizes bereit.
+2026-03-23 13:13:11 - Wetterstation - INFO - Seed-Daten eingetragen (Sensoren & Datentypen).
+2026-03-23 13:13:11 - Wetterstation - INFO - Datenbank erfolgreich initialisiert: /run/media/mbrueckl/rootfs/home/admin/Wetterstation/database/Wetterstaion.db
+2026-03-23 13:13:11 - Wetterstation - INFO - System bereit.
+2026-03-23 13:17:29 - Wetterstation - INFO - Wetterstation wird gestartet...
+2026-03-23 13:17:35 - Wetterstation - INFO - Tabellen und Indizes bereit.
+2026-03-23 13:17:35 - Wetterstation - INFO - Seed-Daten eingetragen (Sensoren & Datentypen).
+2026-03-23 13:17:35 - Wetterstation - INFO - Datenbank erfolgreich initialisiert: /run/media/mbrueckl/rootfs/home/admin/Wetterstation/database/WetterstaionData.db
+2026-03-23 13:17:35 - Wetterstation - INFO - System bereit.
+2026-03-23 13:17:56 - Wetterstation - INFO - Wetterstation wird gestartet...
+2026-03-23 13:17:57 - Wetterstation - INFO - Tabellen und Indizes bereit.
+2026-03-23 13:17:57 - Wetterstation - INFO - Seed-Daten eingetragen (Sensoren & Datentypen).
+2026-03-23 13:17:57 - Wetterstation - INFO - Datenbank erfolgreich initialisiert: /run/media/mbrueckl/rootfs/home/admin/Wetterstation/database/WetterstaionData.db
+2026-03-23 13:17:57 - Wetterstation - INFO - System bereit.
+2026-03-23 13:19:00 - Wetterstation - INFO - Wetterstation wird gestartet...
+2026-03-23 13:19:00 - Wetterstation - INFO - Tabellen und Indizes bereit.
+2026-03-23 13:19:00 - Wetterstation - INFO - Seed-Daten eingetragen (Sensoren & Datentypen).
+2026-03-23 13:19:00 - Wetterstation - INFO - Datenbank erfolgreich initialisiert: /run/media/mbrueckl/rootfs/home/admin/Wetterstation/database/WetterstationData.db
+2026-03-23 13:19:00 - Wetterstation - INFO - System bereit.
+2026-03-23 13:19:10 - Wetterstation - INFO - Wetterstation wird gestartet...
+2026-03-23 13:19:10 - Wetterstation - INFO - Tabellen und Indizes bereit.
+2026-03-23 13:19:10 - Wetterstation - INFO - Seed-Daten eingetragen (Sensoren & Datentypen).
+2026-03-23 13:19:10 - Wetterstation - INFO - Datenbank erfolgreich initialisiert: /run/media/mbrueckl/rootfs/home/admin/Wetterstation/database/WetterstationData.db
+2026-03-23 13:19:10 - Wetterstation - INFO - System bereit.
+2026-03-23 13:19:11 - Wetterstation - INFO - Wetterstation wird gestartet...
+2026-03-23 13:19:11 - Wetterstation - INFO - Tabellen und Indizes bereit.
+2026-03-23 13:19:11 - Wetterstation - INFO - Seed-Daten eingetragen (Sensoren & Datentypen).
+2026-03-23 13:19:11 - Wetterstation - INFO - Datenbank erfolgreich initialisiert: /run/media/mbrueckl/rootfs/home/admin/Wetterstation/database/WetterstationData.db
+2026-03-23 13:19:11 - Wetterstation - INFO - System bereit.
+2026-03-23 13:19:12 - Wetterstation - INFO - Wetterstation wird gestartet...
+2026-03-23 13:19:12 - Wetterstation - INFO - Tabellen und Indizes bereit.
+2026-03-23 13:19:12 - Wetterstation - INFO - Seed-Daten eingetragen (Sensoren & Datentypen).
+2026-03-23 13:19:12 - Wetterstation - INFO - Datenbank erfolgreich initialisiert: /run/media/mbrueckl/rootfs/home/admin/Wetterstation/database/WetterstationData.db
+2026-03-23 13:19:12 - Wetterstation - INFO - System bereit.
+2026-03-23 13:19:12 - Wetterstation - INFO - Wetterstation wird gestartet...
+2026-03-23 13:19:12 - Wetterstation - INFO - Tabellen und Indizes bereit.
+2026-03-23 13:19:12 - Wetterstation - INFO - Seed-Daten eingetragen (Sensoren & Datentypen).
+2026-03-23 13:19:12 - Wetterstation - INFO - Datenbank erfolgreich initialisiert: /run/media/mbrueckl/rootfs/home/admin/Wetterstation/database/WetterstationData.db
+2026-03-23 13:19:12 - Wetterstation - INFO - System bereit.
+2026-03-23 13:19:13 - Wetterstation - INFO - Wetterstation wird gestartet...
+2026-03-23 13:19:13 - Wetterstation - INFO - Tabellen und Indizes bereit.
+2026-03-23 13:19:13 - Wetterstation - INFO - Seed-Daten eingetragen (Sensoren & Datentypen).
+2026-03-23 13:19:13 - Wetterstation - INFO - Datenbank erfolgreich initialisiert: /run/media/mbrueckl/rootfs/home/admin/Wetterstation/database/WetterstationData.db
+2026-03-23 13:19:13 - Wetterstation - INFO - System bereit.

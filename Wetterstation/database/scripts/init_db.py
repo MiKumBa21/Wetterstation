@@ -1,11 +1,15 @@
 import sqlite3
-import os
 import sys
-sys.path.insert(0, "../../")
+from pathlib import Path
+
+import os
+
+# backend/ zum sys.path hinzufügen damit log und config importierbar sind
+sys.path.append(str(Path(__file__).parent.parent.parent))
 import log
+import config
 
-DEFAULT_DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "WetterstationData.db")
-
+DEFAULT_DB_PATH = str(config.DB_PATH)
 
 def init_DB(db_path: str = DEFAULT_DB_PATH) -> bool:
     try:
@@ -93,7 +97,7 @@ def init_DB(db_path: str = DEFAULT_DB_PATH) -> bool:
             log.log_info("Seed-Daten eingetragen (Sensoren & Datentypen).")
             con.commit()
 
-        log.log_info(f"Datenbank erfolgreich initialisiert: {db_path}")
+        log.log_info(f"Datenbank erfolgreich initialisiert: {os.path.normpath(DEFAULT_DB_PATH)}")
         return True
 
     except sqlite3.Error as e:
