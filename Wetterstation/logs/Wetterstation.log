@@ -67,3 +67,8 @@ NameError: name 'os' is not defined. Did you forget to import 'os'?
 2026-03-23 13:19:13 - Wetterstation - INFO - Seed-Daten eingetragen (Sensoren & Datentypen).
 2026-03-23 13:19:13 - Wetterstation - INFO - Datenbank erfolgreich initialisiert: /run/media/mbrueckl/rootfs/home/admin/Wetterstation/database/WetterstationData.db
 2026-03-23 13:19:13 - Wetterstation - INFO - System bereit.
+2026-03-23 19:17:04 - Wetterstation - INFO - Wetterstation wird gestartet...
+2026-03-23 19:17:04 - Wetterstation - INFO - Tabellen und Indizes bereit.
+2026-03-23 19:17:04 - Wetterstation - INFO - Seed-Daten eingetragen (Sensoren & Datentypen).
+2026-03-23 19:17:04 - Wetterstation - INFO - Datenbank erfolgreich initialisiert: /home/mbrueckl/Dokumente/Schule/2025.26/ITP/ITP2/Projekt Wetterstation/Wetterstation/database/WetterstationData.db
+2026-03-23 19:17:04 - Wetterstation - INFO - System bereit.
