@@ -1,0 +1,63 @@
+:root {
+  font-family: system-ui, Arial, sans-serif;
+  background-color: #e5e7eb;
+  color: #1f2937;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+
+.topbar {
+  background: #168ed8;
+  color: white;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* GRID LAYOUT */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+/* CARD STYLE */
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+/* TITLES */
+.card h2 {
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+/* VALUES */
+.value {
+  font-size: 28px;
+  font-weight: bold;
+}
+
+
+button {
+  background: #168ed8;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #0f9e94;
+}
