@@ -4,6 +4,7 @@
   color: #1f2937;
 }
 
+
 body {
   margin: 0;
   min-height: 100vh;
@@ -11,12 +12,23 @@ body {
 
 
 .topbar {
-  background: #168ed8;
+  position: relative;
   color: white;
   padding: 16px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.topbar-loading {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  font-size: 12px;
+  padding: 4px;
+  opacity: 0.85;
 }
 
 /* GRID LAYOUT */
@@ -34,6 +46,15 @@ body {
   padding: 20px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
   text-align: center;
+
+  text-decoration: none;
+  display: block;
+  color: inherit;
+}
+
+link {
+  text-decoration: none;
+  color: black;
 }
 
 /* TITLES */
@@ -60,4 +81,9 @@ button {
 
 button:hover {
   background: #0f9e94;
+}
+
+.back-link {
+  text-decoration: none;
+  color: #168ed8;
 }
