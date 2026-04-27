@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { RadialBarChart, RadialBar, PolarAngleAxis } from "recharts";
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from "react-router-dom";
 
+
 const API_URL = "http://192.168.0.50/data";
 
 interface WeatherData {
@@ -18,20 +19,41 @@ const createChartData = (value: number | null) => [
 
 // 🔹 Farben pro Seite
 const pageColors: Record<string, string> = {
-  "/": "#168ed8",
-  "/temperatur": "#ef4444",
-  "/luft": "#3b82f6",
-  "/licht": "#f59e0b",
-  "/uv": "#22c55e",
+  "/": "linear-gradient(90deg, #168ed8, #06cef1)",
+  "/temperatur": "linear-gradient(90deg, #ef4444, #f97316)",
+  "/luft": "linear-gradient(90deg, #3b82f6, #06cef1)",
+  "/licht": "linear-gradient(90deg, #f59e0b, #fde047)",
+  "/uv": "linear-gradient(90deg, #22c55e, #4adea8)",
 };
 
 
 // 🔹 TOPBAR
 function Topbar({ title, color, onRefresh }: any) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
-    <div className="topbar" style={{ background: color }}>
-      <h1>{title}</h1>
-      <button onClick={onRefresh}>↻</button>
+    <div style={{ position: "relative" }}>
+
+      {/* TOPBAR */}
+      <div className="topbar" style={{ background: color }}>
+        <button onClick={() => setMenuOpen(!menuOpen)}>☰</button>
+        <h1>{title}</h1>
+        <button onClick={onRefresh}>↻</button>
+      </div>
+
+      {/* BURGER MENÜ */}
+      {menuOpen && (
+        <div className="menu">
+          <h2>Menü</h2>
+
+          <Link to="/" onClick={() => setMenuOpen(false)}>🏠 Dashboard</Link>
+          <Link to="/temperatur" onClick={() => setMenuOpen(false)}>🌡️ Temperatur</Link>
+          <Link to="/luft" onClick={() => setMenuOpen(false)}>💧 Luft</Link>
+          <Link to="/licht" onClick={() => setMenuOpen(false)}>💡 Licht</Link>
+          <Link to="/uv" onClick={() => setMenuOpen(false)}>☀️ UV</Link>
+        </div>
+      )}
+
     </div>
   );
 }
@@ -39,45 +61,111 @@ function Topbar({ title, color, onRefresh }: any) {
 
 // 🔹 DASHBOARD
 function Dashboard({ data, fetchData, loading }: any) {
-  const location = useLocation();
-  const color = pageColors[location.pathname] || "#168ed8";
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <div>
-      <Topbar title="Wetterstation" color={color} onRefresh={fetchData} />
 
+      {/* TOPBAR */}
+      <div className="topbar">
+        <button onClick={() => setMenuOpen(!menuOpen)}>☰</button>
+        <h1>Wetterstation</h1>
+        <button onClick={fetchData}>↻</button>
+      </div>
+
+      {/* BURGER MENÜ */}
+      {menuOpen && (
+        <div className="menu">
+          <h2>Menü</h2>
+
+          <Link to="/" onClick={() => setMenuOpen(false)}>🏠 Dashboard</Link>
+          <Link to="/temperatur" onClick={() => setMenuOpen(false)}>🌡️ Temperatur</Link>
+          <Link to="/luft" onClick={() => setMenuOpen(false)}>💧 Luft</Link>
+          <Link to="/licht" onClick={() => setMenuOpen(false)}>💡 Licht</Link>
+          <Link to="/uv" onClick={() => setMenuOpen(false)}>☀️ UV</Link>
+        </div>
+      )}
+
+
+
+      {/* ✅ HIER IST DEIN DASHBOARD */}
       <div className="grid">
 
+        {/* Temperatur */}
         <Link to="/temperatur" className="card">
+
           <h2>🌡️ Temperatur</h2>
-          <RadialBarChart width={200} height={120} cx="50%" cy="100%" innerRadius="60%" outerRadius="100%" startAngle={180} endAngle={0} data={createChartData(data.temp)}>
+          <RadialBarChart
+            width={200}
+            height={120}
+            cx="50%"
+            cy="100%"
+            innerRadius="60%"
+            outerRadius="100%"
+            startAngle={180}
+            endAngle={0}
+            data={createChartData(data.temp)}
+          >
             <PolarAngleAxis type="number" domain={[0, 50]} tick={false} />
             <RadialBar dataKey="value" fill="#ef4444" />
           </RadialBarChart>
           <div className="value">{data.temp} °C</div>
         </Link>
 
+        {/* Luft */}
         <Link to="/luft" className="card">
           <h2>💧 Luftfeuchtigkeit</h2>
-          <RadialBarChart width={200} height={120} cx="50%" cy="100%" innerRadius="60%" outerRadius="100%" startAngle={180} endAngle={0} data={createChartData(data.hygro)}>
+          <RadialBarChart
+            width={200}
+            height={120}
+            cx="50%"
+            cy="100%"
+            innerRadius="60%"
+            outerRadius="100%"
+            startAngle={180}
+            endAngle={0}
+            data={createChartData(data.hygro)}
+          >
             <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
             <RadialBar dataKey="value" fill="#3b82f6" />
           </RadialBarChart>
           <div className="value">{data.hygro} %</div>
         </Link>
 
+        {/* Licht */}
         <Link to="/licht" className="card">
           <h2>💡 Licht</h2>
-          <RadialBarChart width={200} height={120} cx="50%" cy="100%" innerRadius="60%" outerRadius="100%" startAngle={180} endAngle={0} data={createChartData(data.lighting)}>
+          <RadialBarChart
+            width={200}
+            height={120}
+            cx="50%"
+            cy="100%"
+            innerRadius="60%"
+            outerRadius="100%"
+            startAngle={180}
+            endAngle={0}
+            data={createChartData(data.lighting)}
+          >
             <PolarAngleAxis type="number" domain={[0, 1000]} tick={false} />
             <RadialBar dataKey="value" fill="#f59e0b" />
           </RadialBarChart>
           <div className="value">{data.lighting} lx</div>
         </Link>
 
+        {/* UV */}
         <Link to="/uv" className="card">
           <h2>☀️ UV Index</h2>
-          <RadialBarChart width={200} height={120} cx="50%" cy="100%" innerRadius="60%" outerRadius="100%" startAngle={180} endAngle={0} data={createChartData(data.uv)}>
+          <RadialBarChart
+            width={200}
+            height={120}
+            cx="50%"
+            cy="100%"
+            innerRadius="60%"
+            outerRadius="100%"
+            startAngle={180}
+            endAngle={0}
+            data={createChartData(data.uv)}
+          >
             <PolarAngleAxis type="number" domain={[0, 11]} tick={false} />
             <RadialBar dataKey="value" fill="#22c55e" />
           </RadialBarChart>
@@ -99,7 +187,7 @@ function Detail({ title, value, unit }: any) {
 
   return (
     <div>
-      <Topbar title={title} color={color} onRefresh={() => {}} />
+      <Topbar title={title} color={color} onRefresh={() => { }} />
 
       <div style={{ textAlign: "center", padding: "50px" }}>
         <h2>{value} {unit}</h2>
