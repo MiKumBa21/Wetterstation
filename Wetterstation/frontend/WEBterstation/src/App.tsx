@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { RadialBarChart, RadialBar, PolarAngleAxis } from "recharts";
 
 // 👉 HIER deine echte API eintragen
-
+const API_URL = "http://192.168.0.50/data";
 
 interface WeatherData {
   temp: number | null;
@@ -18,7 +18,7 @@ const createChartData = (value: number | null) => [
 export default function Wetterstation() {
 
   // 👉 TESTDATEN (damit du was siehst!)
-  const [data] = useState<WeatherData>({
+  const [data, setData] = useState<WeatherData>({
     temp: 23,
     hygro: 55,
     lighting: 300,
