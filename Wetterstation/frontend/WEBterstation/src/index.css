@@ -1,8 +1,10 @@
 :root {
+    --main-gradient: linear-gradient(90deg, #3b82f6, #06cef1);
   font-family: system-ui, Arial, sans-serif;
   background-color: #e5e7eb;
   color: #1f2937;
 }
+
 
 body {
   margin: 0;
@@ -11,12 +13,39 @@ body {
 
 
 .topbar {
-  background: #168ed8;
+  background: var(--main-gradient);
   color: white;
-  padding: 16px 24px;
+  padding: 16px 20px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  border-radius: 0 0 12px 12px;
+}
+
+.topbar button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 20px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.topbar button:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.topbar-loading {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  font-size: 12px;
+  padding: 4px;
+  opacity: 0.85;
 }
 
 /* GRID LAYOUT */
@@ -34,6 +63,15 @@ body {
   padding: 20px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
   text-align: center;
+
+  text-decoration: none;
+  display: block;
+  color: inherit;
+}
+
+link {
+  text-decoration: none;
+  color: black;
 }
 
 /* TITLES */
@@ -60,4 +98,46 @@ button {
 
 button:hover {
   background: #0f9e94;
+}
+
+.back-link {
+  text-decoration: none;
+  color: #168ed8;
+}
+
+.colorbutton{
+
+  background-color: #06cef1;
+}
+
+.menu {
+  position: fixed;
+  top: 70px;
+  left: 20px;
+  background: white;
+  padding: 20px;
+  border-radius: 14px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  z-index: 100;
+  min-width: 200px;
+}
+
+.menu h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+.menu a {
+  display: block;
+  padding: 10px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+  transition: 0.2s;
+}
+
+.menu a:hover {
+  background: #f3f4f6;
+  color: #3b82f6;
 }
