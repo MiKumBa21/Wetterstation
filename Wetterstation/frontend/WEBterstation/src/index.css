@@ -236,3 +236,25 @@ body.dark button:hover {
 body.dark .topbar {
   filter: brightness(0.9);
 }
+
+.wifi-card {
+  background: white;
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 10px;
+
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  transition: 0.2s ease;
+}
+
+/* 🌙 DARK MODE */
+body.dark .wifi-card {
+  background: #1e293b;
+  color: #e2e8f0;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+/* optional nicer hover */
+.wifi-card:hover {
+  transform: translateY(-2px);
+}

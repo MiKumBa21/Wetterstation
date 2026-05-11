@@ -127,7 +127,7 @@ function Detail({ title, value, unit }: any) {
 
   return (
     <div>
-      <Topbar title={title} color={color} onRefresh={() => {}} />
+      <Topbar title={title} color={color} onRefresh={() => { }} />
 
       <div style={{ textAlign: "center", padding: "50px" }}>
         <h2>{value} {unit}</h2>
@@ -166,7 +166,59 @@ export default function Wetterstation() {
     uv: 6,
   });
 
+  // 📶 WLAN Netzwerke
+  const [networks, setNetworks] = useState<any[]>([]);
+
+  const loadWifi = async () => {
+    try {
+      // IP Adresse anpassen je nach Netzwerksetup 
+      const res = await fetch("http://192.168.56.1:3001/wifi");
+      const data = await res.json();
+
+      setNetworks(prev => {
+        // optional: nur update wenn sich was geändert hat
+        if (JSON.stringify(prev) === JSON.stringify(data)) {
+          return prev;
+        }
+        return data;
+      });
+
+    } catch (err) {
+      console.log(err);
+    }
+  };
+  useEffect(() => {
+    let interval: any;
+
+    const startScan = async () => {
+      await loadWifi(); // erster sofortiger Load
+
+      interval = setInterval(() => {
+        loadWifi();
+      }, 5000);
+    };
+
+    startScan();
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const connectWifi = async (ssid: string) => {
+    try {
+      await fetch("http://192.168.0.50:3001/wifi/connect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ssid }),
+      });
+
+      alert("Verbunden mit " + ssid);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   const [loading, setLoading] = useState(false);
+
 
   const fetchData = async () => {
     try {
@@ -231,12 +283,67 @@ export default function Wetterstation() {
               />
             </div>
 
+
+
             <div className="setting">
-              <label>WLAN</label>
-              <span>192.168.0.50 verbunden</span>
+              <label>📶 WLAN Netzwerke</label>
+
+
+              {/*<button onClick={loadWifi} style={{ borderRadius: '5px' }} >
+                Netzwerke suchen
+              </button>*/}
+
+
+
+              <div style={{ marginTop: "15px" }}>
+
+                {networks
+                  .sort((a, b) => b.signal_level - a.signal_level)
+                  .slice(0, 2)
+                  .map((wifi, index) => (
+
+                    <div className="wifi-card">
+
+                      {/* 🔹 WLAN Info Zeile */}
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          marginBottom: "10px",
+                        }}
+                      >
+                        <div>
+                          <strong>{wifi.ssid || "Unbekannt"}</strong>
+                        </div>
+
+                        <div>
+                          📶 {wifi.signal_level}%
+                        </div>
+                      </div>
+
+                      {/* 🔗 CONNECT BUTTON */}
+                      <button
+                        onClick={() => connectWifi(wifi.ssid)}
+                        style={{
+                          width: "100%",
+                          padding: "10px",
+                          borderRadius: "8px",
+                          border: "none",
+                          background: "#3b82f6",
+                          color: "white",
+                          cursor: "pointer",
+                        }}
+                      >
+                        🔗 Verbinden
+                      </button>
+
+                    </div>
+                  ))}
+              </div>
             </div>
 
-            <button onClick={() => setSettingsOpen(false)}>
+            <button onClick={() => setSettingsOpen(false)} style={{ borderRadius: '5px' }}>
               Schließen
             </button>
 
