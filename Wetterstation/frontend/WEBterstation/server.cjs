@@ -8,18 +8,31 @@ app.use(cors());
 app.use(express.json());
 
 /* =========================================
+   ⚠️ RASPBERRY PI SETUP
+   
+   Für Raspberry Pi (Linux) benötigt:
+   - nmcli (NetworkManager) muss installiert sein
+   - Node.js muss als root/sudo laufen für WiFi-Befehle
+   
+   Start mit: sudo node server.cjs
+   
+   Installation von nmcli (falls nicht vorhanden):
+   sudo apt-get install network-manager
+========================================= */
+
+/* =========================================
    📶 WLAN SCAN (zeigt mehrere Netzwerke)
 ========================================= */
 app.get("/wifi", (req, res) => {
   console.log("📡 WLAN Scan gestartet...");
 
-  exec("netsh wlan show networks mode=bssid", (err, stdout) => {
+  exec("nmcli device wifi list --rescan yes", (err, stdout) => {
     if (err) {
       console.error("Scan Fehler:", err);
       return res.status(500).json({ error: "WLAN Scan fehlgeschlagen" });
     }
 
-    const networks = parseWindowsWifi(stdout);
+    const networks = parseLinuxWifi(stdout);
 
     // 🔥 nur Top 3 nach Signal
     const sorted = networks
@@ -31,23 +44,27 @@ app.get("/wifi", (req, res) => {
 });
 
 /* =========================================
-   🧠 PARSER (Windows netsh -> JSON)
+   🧠 PARSER (Linux nmcli -> JSON)
 ========================================= */
-function parseWindowsWifi(output) {
+function parseLinuxWifi(output) {
   const networks = [];
-  const blocks = output.split("SSID");
+  const lines = output.split("\n").slice(1); // Skip header
 
-  for (let i = 1; i < blocks.length; i++) {
-    const block = "SSID" + blocks[i];
+  for (const line of lines) {
+    const parts = line.trim().split(/\s+/);
+    
+    if (parts.length >= 7) {
+      // Format: SSID BSSID MODE CHAN RATE SIGNAL BARS SECURITY
+      // Signal ist die Spalte vor BARS
+      const signal = parseInt(parts[parts.length - 3]);
+      const ssid = parts.slice(0, parts.length - 6).join(" ");
 
-    const ssidMatch = block.match(/SSID\s+\d+\s*:\s*(.*)/);
-    const signalMatch = block.match(/Signal\s*:\s*(\d+)%/);
-
-    if (ssidMatch) {
-      networks.push({
-        ssid: ssidMatch[1].trim(),
-        signal_level: signalMatch ? parseInt(signalMatch[1]) : 0,
-      });
+      if (ssid && !isNaN(signal)) {
+        networks.push({
+          ssid: ssid.trim(),
+          signal_level: signal,
+        });
+      }
     }
   }
 
@@ -66,7 +83,8 @@ app.post("/wifi/connect", (req, res) => {
 
   console.log("🔗 Verbinde mit:", ssid);
 
-  exec(`netsh wlan connect name="${ssid}"`, (err, stdout, stderr) => {
+  // Hinweis: Passwort-Handling würde hier erforderlich sein
+  exec(`nmcli device wifi connect "${ssid}"`, (err, stdout, stderr) => {
     if (err) {
       console.error("Connect Fehler:", stderr || err.message);
       return res.status(500).json({
@@ -86,7 +104,7 @@ app.post("/wifi/connect", (req, res) => {
    🔻 WLAN TRENNEN
 ========================================= */
 app.post("/wifi/disconnect", (req, res) => {
-  exec("netsh wlan disconnect", (err) => {
+  exec("nmcli device disconnect", (err) => {
     if (err) {
       console.error("Disconnect Fehler:", err);
       return res.status(500).json({ error: "Trennen fehlgeschlagen" });

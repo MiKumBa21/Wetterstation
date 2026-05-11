@@ -172,7 +172,7 @@ export default function Wetterstation() {
   const loadWifi = async () => {
     try {
       // IP Adresse anpassen je nach Netzwerksetup 
-      const res = await fetch("http://192.168.56.1:3001/wifi");
+      const res = await fetch("http://localhost:3001/wifi");
       const data = await res.json();
 
       setNetworks(prev => {
@@ -302,7 +302,7 @@ export default function Wetterstation() {
                   .slice(0, 2)
                   .map((wifi, index) => (
 
-                    <div className="wifi-card">
+                    <div key={index} className="wifi-card">
 
                       {/* 🔹 WLAN Info Zeile */}
                       <div
