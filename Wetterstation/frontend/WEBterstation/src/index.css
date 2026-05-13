@@ -1,103 +1,72 @@
 :root {
-    --main-gradient: linear-gradient(90deg, #3b82f6, #06cef1);
   font-family: system-ui, Arial, sans-serif;
-  background-color: #e5e7eb;
+  background: #eef2f7;
   color: #1f2937;
 }
-
 
 body {
   margin: 0;
   min-height: 100vh;
+  background: #eef2f7;
 }
 
-
 .topbar {
-  background: var(--main-gradient);
+  background: #168ed8;
   color: white;
   padding: 16px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-radius: 0 0 12px 12px;
 }
 
 .topbar button {
   background: rgba(255, 255, 255, 0.2);
   border: none;
   color: white;
-  font-size: 20px;
+  font-size: 18px;
   padding: 10px 14px;
   border-radius: 10px;
   cursor: pointer;
-  transition: 0.2s;
 }
 
-.topbar button:hover {
-  background: rgba(255, 255, 255, 0.35);
-}
-
-.topbar-loading {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  text-align: center;
-  font-size: 12px;
-  padding: 4px;
-  opacity: 0.85;
-}
-
-/* GRID LAYOUT */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
   padding: 20px;
 }
 
-/* CARD STYLE */
 .card {
   background: white;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
   text-align: center;
-
-  text-decoration: none;
-  display: block;
   color: inherit;
-}
-
-link {
   text-decoration: none;
-  color: black;
 }
 
-/* TITLES */
 .card h2 {
   font-size: 16px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
-/* VALUES */
 .value {
-  font-size: 28px;
-  font-weight: bold;
+  font-size: 26px;
+  font-weight: 700;
 }
-
 
 button {
   background: #168ed8;
   color: white;
   border: none;
-  padding: 10px 16px;
+  padding: 10px 14px;
   border-radius: 10px;
   cursor: pointer;
 }
 
 button:hover {
-  background: #0f9e94;
+  background: #0f84c9;
 }
 
 .back-link {
@@ -105,107 +74,198 @@ button:hover {
   color: #168ed8;
 }
 
-.colorbutton{
-
-  background-color: #06cef1;
-}
-
 .menu {
   position: fixed;
   top: 70px;
   left: 20px;
   background: white;
-  padding: 20px;
+  padding: 16px;
   border-radius: 14px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
   z-index: 100;
   min-width: 200px;
 }
 
 .menu h2 {
-  margin-top: 0;
-  margin-bottom: 15px;
+  margin: 0 0 12px;
 }
 
 .menu a {
   display: block;
   padding: 10px;
-  border-radius: 8px;
+  border-radius: 10px;
   text-decoration: none;
-  color: #333;
-  font-weight: 500;
-  transition: 0.2s;
+  color: #1f2937;
 }
 
 .menu a:hover {
   background: #f3f4f6;
-  color: #3b82f6;
 }
 
-
-/* ⚙️ Zahnrad */
 .settings-btn {
   position: fixed;
   bottom: 20px;
   right: 20px;
-  width: 55px;
-  height: 55px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   border: none;
   background: #168ed8;
   color: white;
-  font-size: 22px;
+  font-size: 20px;
   cursor: pointer;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
-/* Overlay */
 .settings-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.4);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-/* Modal */
 .settings-modal {
   background: white;
-  padding: 30px;
-  border-radius: 20px;
-  width: 300px;
+  padding: 28px;
+  border-radius: 18px;
+  width: min(92%, 460px);
+  text-align: left;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+}
+
+.setting {
+  margin: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.setting label {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.current-wifi {
+  background: #e0f2f1;
+  color: #00695c;
+  padding: 10px 12px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  border: 1px solid #4db8ae;
+}
+
+body.dark .current-wifi {
+  background: #00695c;
+  color: #80cbc4;
+  border-color: #26a69a;
+}
+
+.setting input[type="range"] {
+  width: 100%;
+  height: 6px;
+  border-radius: 6px;
+  background: #d9e6f2;
+  outline: none;
+}
+
+.setting input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.wifi-control-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.wifi-scan-btn,
+.wifi-connect-btn {
+  background: #168ed8;
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.wifi-status {
+  color: #475569;
+  font-size: 14px;
+}
+
+.wifi-error {
+  background: #fee2e2;
+  color: #9f1f1f;
+  padding: 10px 12px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.wifi-list {
+  display: grid;
+  gap: 12px;
+}
+
+.wifi-card {
+  background: white;
+  border: 1px solid #dfe7ef;
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.wifi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.wifi-name {
+  font-weight: 700;
+}
+
+.wifi-meta {
+  color: #3367c1;
+  font-weight: 600;
+}
+
+.wifi-empty {
+  color: #64748b;
+  font-size: 14px;
+  padding: 14px;
+  border-radius: 14px;
+  background: #f1f5f9;
   text-align: center;
 }
 
-/* einzelne Settings */
-.setting {
-  margin: 15px 0;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-/* 🌙 DARK MODE GLOBAL */
 body.dark {
-  background-color: #0f172a;
+  background: #0f172a;
   color: #e2e8f0;
 }
 
-/* Cards */
-body.dark .card {
-  background: #1e293b;
+body.dark .card,
+body.dark .settings-modal,
+body.dark .menu,
+body.dark .wifi-card,
+body.dark .wifi-empty {
+  background: #1f293b;
   color: #e2e8f0;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
 }
 
-/* Menu */
-body.dark .menu {
-  background: #1e293b;
+body.dark input[type="password"],
+body.dark input[type="text"],
+body.dark input[type="range"] {
+  background: #334155;
   color: #e2e8f0;
+  border-color: #475569;
 }
 
 body.dark .menu a {
@@ -214,47 +274,14 @@ body.dark .menu a {
 
 body.dark .menu a:hover {
   background: #334155;
-  color: #38bdf8;
 }
 
-/* Settings Modal */
-body.dark .settings-modal {
-  background: #1e293b;
-  color: #e2e8f0;
-}
-
-/* Buttons im Dark Mode */
 body.dark button {
   background: #334155;
+  color: #e2e8f0;
 }
 
 body.dark button:hover {
   background: #475569;
 }
 
-/* Topbar bleibt Gradient, aber optional dunkler */
-body.dark .topbar {
-  filter: brightness(0.9);
-}
-
-.wifi-card {
-  background: white;
-  border-radius: 14px;
-  padding: 12px;
-  margin-bottom: 10px;
-
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-  transition: 0.2s ease;
-}
-
-/* 🌙 DARK MODE */
-body.dark .wifi-card {
-  background: #1e293b;
-  color: #e2e8f0;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
-}
-
-/* optional nicer hover */
-.wifi-card:hover {
-  transform: translateY(-2px);
-}

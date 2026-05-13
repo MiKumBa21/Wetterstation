@@ -166,55 +166,108 @@ export default function Wetterstation() {
     uv: 6,
   });
 
-  // 📶 WLAN Netzwerke
+  const WIFI_API = import.meta.env.DEV ? "http://localhost:3001" : "";
   const [networks, setNetworks] = useState<any[]>([]);
+  const [currentWifi, setCurrentWifi] = useState<any>(null);
+  const [wifiLoading, setWifiLoading] = useState(false);
+  const [wifiError, setWifiError] = useState<string | null>(null);
+  const [passwordModal, setPasswordModal] = useState<any>(null);
+  const [passwordInput, setPasswordInput] = useState("");
+
+  const parseResponse = async (res: Response) => {
+    const text = await res.text();
+    try {
+      return JSON.parse(text);
+    } catch {
+      return text;
+    }
+  };
 
   const loadWifi = async () => {
     try {
-      // IP Adresse anpassen je nach Netzwerksetup 
-      const res = await fetch("http://localhost:3001/wifi");
-      const data = await res.json();
+      setWifiLoading(true);
+      setWifiError(null);
 
-      setNetworks(prev => {
-        // optional: nur update wenn sich was geändert hat
-        if (JSON.stringify(prev) === JSON.stringify(data)) {
-          return prev;
-        }
-        return data;
-      });
+      const res = await fetch(`${WIFI_API}/wifi`);
+      const payload = await parseResponse(res);
 
-    } catch (err) {
+      if (!res.ok) {
+        const message = typeof payload === "string"
+          ? payload
+          : payload?.error || "Scan fehlgeschlagen";
+        throw new Error(message);
+      }
+
+      if (!Array.isArray(payload)) {
+        throw new Error(
+          typeof payload === "string"
+            ? payload
+            : JSON.stringify(payload)
+        );
+      }
+
+      setNetworks(payload);
+    } catch (err: any) {
       console.log(err);
+      setWifiError(err?.message || "WLAN konnte nicht geladen werden.");
+    } finally {
+      setWifiLoading(false);
     }
   };
+
+  const loadCurrentWifi = async () => {
+    try {
+      const res = await fetch(`${WIFI_API}/wifi/current`);
+      const payload = await parseResponse(res);
+
+      if (res.ok && payload && typeof payload === "object") {
+        setCurrentWifi(payload);
+      } else if (!res.ok) {
+        console.log("Current WiFi load failed:", payload);
+      }
+    } catch (err) {
+      console.log("Error loading current WiFi:", err);
+    }
+  };
+
   useEffect(() => {
-    let interval: any;
-
-    const startScan = async () => {
-      await loadWifi(); // erster sofortiger Load
-
-      interval = setInterval(() => {
-        loadWifi();
-      }, 5000);
-    };
-
-    startScan();
+    loadCurrentWifi();
+    const interval = setInterval(() => {
+      loadCurrentWifi();
+    }, 10000);
 
     return () => clearInterval(interval);
   }, []);
 
-  const connectWifi = async (ssid: string) => {
+  const connectWifi = async (ssid: string, password: string | null = null) => {
+    if (!ssid) return;
+
     try {
-      await fetch("http://192.168.0.50:3001/wifi/connect", {
+      const res = await fetch(`${WIFI_API}/wifi/connect`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ssid }),
+        body: JSON.stringify({ ssid, password }),
       });
 
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error?.error || "Verbindung fehlgeschlagen");
+      }
+
       alert("Verbunden mit " + ssid);
-    } catch (err) {
+      setPasswordModal(null);
+      setPasswordInput("");
+      await loadWifi();
+    } catch (err: any) {
       console.log(err);
+      alert(err?.message || "Verbindung fehlgeschlagen");
     }
+  };
+
+  const handleConnectClick = (ssid: string) => {
+    // Passwort-Modal öffnen (Benutzer kann leeres Passwort eingeben = offenes Netzwerk)
+    setPasswordModal(ssid);
+    setPasswordInput("");
   };
 
   const [loading, setLoading] = useState(false);
@@ -223,6 +276,9 @@ export default function Wetterstation() {
   const fetchData = async () => {
     try {
       setLoading(true);
+      const res = await fetch(API_URL);
+      const newData = await res.json();
+      setData(newData);
     } catch (err) {
       console.log(err);
     } finally {
@@ -252,7 +308,11 @@ export default function Wetterstation() {
       </Router>
 
       {/* ⚙️ BUTTON */}
-      <button className="settings-btn" onClick={() => setSettingsOpen(true)}>
+      <button className="settings-btn" onClick={() => {
+        setSettingsOpen(true);
+        loadWifi();
+        loadCurrentWifi();
+      }}>
         ⚙️
       </button>
 
@@ -288,60 +348,123 @@ export default function Wetterstation() {
             <div className="setting">
               <label>📶 WLAN Netzwerke</label>
 
+              {currentWifi && currentWifi.connected && (
+                <div className="current-wifi">
+                  <strong>Verbunden:</strong> {currentWifi.ssid}
+                </div>
+              )}
 
-              {/*<button onClick={loadWifi} style={{ borderRadius: '5px' }} >
-                Netzwerke suchen
-              </button>*/}
+              <div className="wifi-control-row">
+                <button className="wifi-scan-btn" onClick={loadWifi}>
+                  Netzwerke aktualisieren
+                </button>
+                <span className="wifi-status">
+                  {wifiLoading
+                    ? networks.length > 0
+                      ? "Aktualisiere..."
+                      : "Suche nach WLANs..."
+                    : networks.length
+                    ? `${networks.length} Netzwerk${networks.length === 1 ? "" : "e"}`
+                    : "keine Netzwerke gefunden"}
+                </span>
+              </div>
 
+              {wifiError && <div className="wifi-error">{wifiError}</div>}
 
-
-              <div style={{ marginTop: "15px" }}>
-
-                {networks
-                  .sort((a, b) => b.signal_level - a.signal_level)
-                  .slice(0, 2)
-                  .map((wifi, index) => (
-
-                    <div key={index} className="wifi-card">
-
-                      {/* 🔹 WLAN Info Zeile */}
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          marginBottom: "10px",
-                        }}
-                      >
-                        <div>
-                          <strong>{wifi.ssid || "Unbekannt"}</strong>
+              <div className="wifi-list">
+                {networks.length === 0 ? (
+                  <div className="wifi-empty">
+                    {wifiLoading ? "Suche nach WLANs..." : "Keine WLANs in Reichweite."}
+                  </div>
+                ) : (
+                  networks
+                    .sort((a, b) => b.signal_level - a.signal_level)
+                    .slice(0, 5)
+                    .map((wifi, index) => (
+                      <div key={`${wifi.ssid}-${index}`} className="wifi-card">
+                        <div className="wifi-header">
+                          <div className="wifi-name">{wifi.ssid === "--" ? "Versteckt" : wifi.ssid || "Unbekannt"}</div>
+                          <div className="wifi-meta">📶 {wifi.signal_level}%</div>
                         </div>
-
-                        <div>
-                          📶 {wifi.signal_level}%
-                        </div>
+                        <button className="wifi-connect-btn" onClick={() => handleConnectClick(wifi.ssid)}>
+                          🔗 Verbinden
+                        </button>
                       </div>
-
-                      {/* 🔗 CONNECT BUTTON */}
-                      <button
-                        onClick={() => connectWifi(wifi.ssid)}
-                        style={{
-                          width: "100%",
-                          padding: "10px",
-                          borderRadius: "8px",
-                          border: "none",
-                          background: "#3b82f6",
-                          color: "white",
-                          cursor: "pointer",
-                        }}
-                      >
-                        🔗 Verbinden
-                      </button>
-
-                    </div>
-                  ))}
+                    ))
+                )}
               </div>
             </div>
+
+            {/* 🔐 PASSWORD MODAL */}
+            {passwordModal && (
+              <div style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: "rgba(0,0,0,0.7)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 10000,
+              }}>
+                <div style={{
+                  background: "#fff",
+                  padding: "20px",
+                  borderRadius: "10px",
+                  minWidth: "300px",
+                  boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+                }}>
+                  <h3>Passwort für "{passwordModal}"</h3>
+                  <p style={{ fontSize: "12px", color: "#666" }}>Lass das Feld leer, wenn das Netzwerk offen ist</p>
+                  <input
+                    type="password"
+                    value={passwordInput}
+                    onChange={(e) => setPasswordInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        connectWifi(passwordModal, passwordInput || null);
+                      }
+                    }}
+                    placeholder="Passwort eingeben..."
+                    style={{
+                      width: "100%",
+                      padding: "8px",
+                      marginBottom: "10px",
+                      borderRadius: "5px",
+                      border: "1px solid #ccc",
+                      boxSizing: "border-box",
+                    }}
+                    autoFocus
+                  />
+                  <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+                    <button
+                      onClick={() => {
+                        setPasswordModal(null);
+                        setPasswordInput("");
+                      }}
+                      style={{ padding: "8px 12px", borderRadius: "5px", border: "1px solid #ccc", cursor: "pointer" }}
+                    >
+                      Abbrechen
+                    </button>
+                    <button
+                      onClick={() => connectWifi(passwordModal, passwordInput || null)}
+                      style={{
+                        padding: "8px 12px",
+                        borderRadius: "5px",
+                        background: "#168ed8",
+                        color: "white",
+                        border: "none",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Verbinden
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <button onClick={() => setSettingsOpen(false)} style={{ borderRadius: '5px' }}>
               Schließen
