@@ -2,13 +2,19 @@ import { useEffect, useState } from "react";
 import { RadialBarChart, RadialBar, PolarAngleAxis } from "recharts";
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from "react-router-dom";
 
-const API_URL = "http://192.168.0.50/data";
+const SENSOR_API_URL = "http://localhost:8000/sensors";
 
 interface WeatherData {
   temp: number | null;
   hygro: number | null;
   lighting: number | null;
   uv: number | null;
+}
+
+interface Sensor {
+  sensor_id: number;
+  name: string;
+  typ: string;
 }
 
 const createChartData = (value: number | null) => [
@@ -52,7 +58,7 @@ function Topbar({ title, color, onRefresh }: any) {
 }
 
 // 🔹 DASHBOARD
-function Dashboard({ data, fetchData, loading }: any) {
+function Dashboard({ data, fetchData, loading, sensors, sensorError }: any) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -115,6 +121,25 @@ function Dashboard({ data, fetchData, loading }: any) {
 
       </div>
 
+      <div className="sensor-section">
+        <h2>Sensoren</h2>
+        {loading && <p style={{ textAlign: "center" }}>Sensoren laden...</p>}
+        {sensorError && <p style={{ textAlign: "center", color: "#b91c1c" }}>{sensorError}</p>}
+        {!loading && !sensorError && sensors.length === 0 && (
+          <p style={{ textAlign: "center" }}>Keine Sensoren gefunden.</p>
+        )}
+        {sensors.length > 0 && (
+          <div className="sensor-list">
+            {sensors.map((sensor: Sensor) => (
+              <div key={sensor.sensor_id} className="sensor-card">
+                <strong>{sensor.name}</strong>
+                <div>{sensor.typ}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {loading && <p style={{ textAlign: "center" }}>Aktualisiere...</p>}
     </div>
   );
@@ -159,12 +184,14 @@ export default function Wetterstation() {
     }
   }, [darkMode]);
 
-  const [data, setData] = useState<WeatherData>({
+  const [data] = useState<WeatherData>({
     temp: 23,
     hygro: 55,
     lighting: 300,
     uv: 6,
   });
+  const [sensors, setSensors] = useState<Sensor[]>([]);
+  const [sensorError, setSensorError] = useState<string | null>(null);
 
   const WIFI_API = import.meta.env.DEV ? "http://localhost:3001" : "";
   const [networks, setNetworks] = useState<any[]>([]);
@@ -272,22 +299,26 @@ export default function Wetterstation() {
 
   const [loading, setLoading] = useState(false);
 
-
-  const fetchData = async () => {
+  const fetchSensors = async () => {
     try {
       setLoading(true);
-      const res = await fetch(API_URL);
-      const newData = await res.json();
-      setData(newData);
-    } catch (err) {
+      setSensorError(null);
+      const res = await fetch(SENSOR_API_URL);
+      if (!res.ok) {
+        throw new Error(`Fehler beim Laden der Sensoren: ${res.status}`);
+      }
+      const newSensors = await res.json();
+      setSensors(newSensors);
+    } catch (err: any) {
       console.log(err);
+      setSensorError(err?.message || "Sensordaten konnten nicht geladen werden.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchData();
+    fetchSensors();
   }, []);
 
   return (
@@ -296,7 +327,7 @@ export default function Wetterstation() {
         <Routes>
 
           <Route path="/" element={
-            <Dashboard data={data} fetchData={fetchData} loading={loading} />
+            <Dashboard data={data} fetchData={fetchSensors} loading={loading} sensors={sensors} sensorError={sensorError} />
           } />
 
           <Route path="/temperatur" element={<Detail title="🌡️ Temperatur" value={data.temp} unit="°C" />} />
