@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { RadialBarChart, RadialBar, PolarAngleAxis } from "recharts";
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from "react-router-dom";
+import { RadialBarChart, RadialBar, PolarAngleAxis, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, useParams } from "react-router-dom";
 
 const SENSOR_API_URL = "http://localhost:8000/sensors";
 
@@ -17,6 +17,12 @@ interface Sensor {
   typ: string;
 }
 
+interface Typ {
+  typ_id: number;
+  name: string;
+  einheit?: string;
+}
+
 const createChartData = (value: number | null) => [
   { name: "value", value: value ?? 0 },
 ];
@@ -30,8 +36,41 @@ const pageColors: Record<string, string> = {
   "/uv": "linear-gradient(90deg, #22c55e, #4adea8)",
 };
 
+const getPageColorByType = (name: string) => {
+  const t = name.toLowerCase();
+  if (t.includes("temp") || t.includes("temperatur")) return pageColors["/temperatur"];
+  if (t.includes("hygro") || t.includes("luft") || t.includes("feucht")) return pageColors["/luft"];
+  if (t.includes("licht") || t.includes("lx") || t.includes("lux")) return pageColors["/licht"];
+  if (t.includes("uv")) return pageColors["/uv"];
+  return pageColors["/"];
+};
+
+const getChartProps = (name: string, einheit?: string, value?: number | null) => {
+  const t = name.toLowerCase();
+  if (t.includes("temp") || t.includes("temperatur") || (einheit || "").toLowerCase().includes("c")) {
+    return { domain: [0, 50], fill: "#ef4444", unit: "°C" };
+  }
+  if (t.includes("hygro") || t.includes("feucht") || (einheit || "").toLowerCase().includes("%")) {
+    return { domain: [0, 100], fill: "#3b82f6", unit: "%" };
+  }
+  if (t.includes("uv")) {
+    const uv = value ?? 0;
+    let fill = "#22c55e";
+    if (uv >= 11) fill = "#8b5cf6";
+    else if (uv >= 8) fill = "#f97316";
+    else if (uv >= 6) fill = "#f59e0b";
+    else if (uv >= 3) fill = "#eab308";
+    else fill = "#22c55e";
+    return { domain: [0, 11], fill, unit: "" };
+  }
+  if (t.includes("druck") || (einheit || "").toLowerCase().includes("hpa") || (einheit || "").toLowerCase().includes("bar")) {
+    return { domain: [900, 1100], fill: "#7c3aed", unit: "hPa" };
+  }
+  return { domain: [0, 100], fill: "#888", unit: einheit || "" };
+};
+
 // 🔹 TOPBAR
-function Topbar({ title, color, onRefresh }: any) {
+function Topbar({ title, color, onRefresh, types }: any) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -46,11 +85,17 @@ function Topbar({ title, color, onRefresh }: any) {
         <div className="menu">
           <h2>Menü</h2>
 
-          <Link to="/" onClick={() => setMenuOpen(false)}>🏠 Dashboard</Link>
-          <Link to="/temperatur" onClick={() => setMenuOpen(false)}>🌡️ Temperatur</Link>
-          <Link to="/luft" onClick={() => setMenuOpen(false)}>💧 Luft</Link>
-          <Link to="/licht" onClick={() => setMenuOpen(false)}>💡 Licht</Link>
-          <Link to="/uv" onClick={() => setMenuOpen(false)}>☀️ UV</Link>
+          <Link to="/" onClick={() => setMenuOpen(false)}>Dashboard</Link>
+          {types && types.length > 0 && (
+            <>
+              <hr style={{ margin: '10px 0', borderColor: '#d1d5db' }} />
+              {types.map((typ: Typ) => (
+                <Link key={typ.typ_id} to={`/typ/${encodeURIComponent(typ.name)}`} onClick={() => setMenuOpen(false)}>
+                  {typ.name}
+                </Link>
+              ))}
+            </>
+          )}
         </div>
       )}
     </div>
@@ -58,7 +103,7 @@ function Topbar({ title, color, onRefresh }: any) {
 }
 
 // 🔹 DASHBOARD
-function Dashboard({ data, fetchData, loading, sensors, sensorError }: any) {
+function Dashboard({ types, currentValues, fetchData, loading }: any) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -73,70 +118,40 @@ function Dashboard({ data, fetchData, loading, sensors, sensorError }: any) {
         <div className="menu">
           <h2>Menü</h2>
 
-          <Link to="/" onClick={() => setMenuOpen(false)}>🏠 Dashboard</Link>
-          <Link to="/temperatur" onClick={() => setMenuOpen(false)}>🌡️ Temperatur</Link>
-          <Link to="/luft" onClick={() => setMenuOpen(false)}>💧 Luft</Link>
-          <Link to="/licht" onClick={() => setMenuOpen(false)}>💡 Licht</Link>
-          <Link to="/uv" onClick={() => setMenuOpen(false)}>☀️ UV</Link>
+          <Link to="/" onClick={() => setMenuOpen(false)}>Dashboard</Link>
+          {types && types.length > 0 && (
+            <>
+              <hr style={{ margin: '10px 0', borderColor: '#d1d5db' }} />
+              {types.map((typ: Typ) => (
+                <Link key={typ.typ_id} to={`/typ/${encodeURIComponent(typ.name)}`} onClick={() => setMenuOpen(false)}>
+                  {typ.name}
+                </Link>
+              ))}
+            </>
+          )}
         </div>
       )}
 
       <div className="grid">
-
-        <Link to="/temperatur" className="card">
-          <h2>🌡️ Temperatur</h2>
-          <RadialBarChart width={200} height={120} cx="50%" cy="100%" innerRadius="60%" outerRadius="100%" startAngle={180} endAngle={0} data={createChartData(data.temp)}>
-            <PolarAngleAxis type="number" domain={[0, 50]} tick={false} />
-            <RadialBar dataKey="value" fill="#ef4444" />
-          </RadialBarChart>
-          <div className="value">{data.temp} °C</div>
-        </Link>
-
-        <Link to="/luft" className="card">
-          <h2>💧 Luftfeuchtigkeit</h2>
-          <RadialBarChart width={200} height={120} cx="50%" cy="100%" innerRadius="60%" outerRadius="100%" startAngle={180} endAngle={0} data={createChartData(data.hygro)}>
-            <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
-            <RadialBar dataKey="value" fill="#3b82f6" />
-          </RadialBarChart>
-          <div className="value">{data.hygro} %</div>
-        </Link>
-
-        <Link to="/licht" className="card">
-          <h2>💡 Licht</h2>
-          <RadialBarChart width={200} height={120} cx="50%" cy="100%" innerRadius="60%" outerRadius="100%" startAngle={180} endAngle={0} data={createChartData(data.lighting)}>
-            <PolarAngleAxis type="number" domain={[0, 1000]} tick={false} />
-            <RadialBar dataKey="value" fill="#f59e0b" />
-          </RadialBarChart>
-          <div className="value">{data.lighting} lx</div>
-        </Link>
-
-        <Link to="/uv" className="card">
-          <h2>☀️ UV Index</h2>
-          <RadialBarChart width={200} height={120} cx="50%" cy="100%" innerRadius="60%" outerRadius="100%" startAngle={180} endAngle={0} data={createChartData(data.uv)}>
-            <PolarAngleAxis type="number" domain={[0, 11]} tick={false} />
-            <RadialBar dataKey="value" fill="#22c55e" />
-          </RadialBarChart>
-          <div className="value">{data.uv}</div>
-        </Link>
-
-      </div>
-
-      <div className="sensor-section">
-        <h2>Sensoren</h2>
-        {loading && <p style={{ textAlign: "center" }}>Sensoren laden...</p>}
-        {sensorError && <p style={{ textAlign: "center", color: "#b91c1c" }}>{sensorError}</p>}
-        {!loading && !sensorError && sensors.length === 0 && (
-          <p style={{ textAlign: "center" }}>Keine Sensoren gefunden.</p>
-        )}
-        {sensors.length > 0 && (
-          <div className="sensor-list">
-            {sensors.map((sensor: Sensor) => (
-              <div key={sensor.sensor_id} className="sensor-card">
-                <strong>{sensor.name}</strong>
-                <div>{sensor.typ}</div>
-              </div>
-            ))}
-          </div>
+        {types && types.length > 0 ? (
+          types.map((typ: Typ) => {
+            const val = currentValues?.[typ.name] ?? null;
+            const props = getChartProps(typ.name, typ.einheit, val);
+            return (
+              <Link key={typ.typ_id} to={`/typ/${encodeURIComponent(typ.name)}`} className="card">
+                <h2>{typ.name}</h2>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 180 }}>
+                  <RadialBarChart width={250} height={180} cx="50%" cy="75%" innerRadius="60%" outerRadius="100%" startAngle={180} endAngle={0} data={createChartData(val)}>
+                    <PolarAngleAxis type="number" domain={props.domain as any} tick={false} />
+                    <RadialBar dataKey="value" fill={props.fill} />
+                  </RadialBarChart>
+                </div>
+                <div className="value" style={{ textAlign: 'center' }}>{val ?? "-"} {props.unit}</div>
+              </Link>
+            );
+          })
+        ) : (
+          <p style={{ textAlign: "center" }}>Keine Typen gefunden.</p>
         )}
       </div>
 
@@ -145,14 +160,147 @@ function Dashboard({ data, fetchData, loading, sensors, sensorError }: any) {
   );
 }
 
+type HistoryEntry = {
+  typ: string;
+  einheit: string;
+  sensor: string;
+  wert: number;
+  zeitstempel: string;
+};
+
+function TypDetail({ darkMode, types }: { darkMode: boolean; types: Typ[] }) {
+  const { typName } = useParams<{ typName: string }>();
+  const [zeitraum, setZeitraum] = useState("7tage");
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const timeframes = [
+    { key: "7tage", label: "7 Tage" },
+    { key: "30tage", label: "30 Tage" },
+    { key: "90tage", label: "90 Tage" },
+  ];
+
+  const parseResponse = async (res: Response) => {
+    const text = await res.text();
+    try {
+      return JSON.parse(text);
+    } catch {
+      return text;
+    }
+  };
+
+  const fetchHistory = async (range: string) => {
+    if (!typName) return;
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch(`http://localhost:8000/history/${encodeURIComponent(typName)}?zeitraum=${range}`);
+      const payload = await parseResponse(res);
+      if (!res.ok) throw new Error(payload?.error || "Verlauf konnte nicht geladen werden");
+      if (!Array.isArray(payload)) throw new Error("Ungültige Daten vom Server");
+      setHistory(payload.map((item: any) => ({
+        typ: item.typ,
+        einheit: item.einheit,
+        sensor: item.sensor,
+        wert: typeof item.wert === "number" ? item.wert : Number(item.wert),
+        zeitstempel: item.zeitstempel,
+      })));
+    } catch (err: any) {
+      setError(err?.message || "Fehler beim Laden des Verlaufs");
+      setHistory([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (typName) {
+      fetchHistory(zeitraum);
+    }
+  }, [typName, zeitraum]);
+
+  const formattedLabel = typName ? decodeURIComponent(typName) : "";
+  const color = getPageColorByType(formattedLabel);
+  const chartData = history.map((item) => ({ label: item.zeitstempel, value: item.wert }));
+  const average = history.length > 0 ? history.reduce((sum, item) => sum + item.wert, 0) / history.length : null;
+  const axisColor = darkMode ? "#cbd5e1" : "#475569";
+  const gridColor = darkMode ? "rgba(148,163,184,0.2)" : "rgba(148,163,184,0.4)";
+  const tooltipStyle = {
+    backgroundColor: darkMode ? "#1f2937" : "#ffffff",
+    borderColor: darkMode ? "#475569" : "#d1d5db",
+    color: darkMode ? "#e2e8f0" : "#0f172a",
+  };
+  const props = getChartProps(formattedLabel, history[0]?.einheit, history[history.length - 1]?.wert ?? null);
+
+  return (
+    <div>
+      <Topbar title={formattedLabel || "Detail"} color={color} onRefresh={() => fetchHistory(zeitraum)} types={types} />
+      <div className="detail-container">
+        <div className="detail-card">
+          <div className="detail-title-row">
+            <h2>{formattedLabel || "Unbekannt"}</h2>
+            <Link to="/" className="back-link">⬅ Zurück</Link>
+          </div>
+
+          <div className="range-selector">
+            {timeframes.map((item) => (
+              <button
+                key={item.key}
+                className={zeitraum === item.key ? "range-button active" : "range-button"}
+                onClick={() => setZeitraum(item.key)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+
+          {error && <p className="detail-error">{error}</p>}
+          {loading && <p className="detail-loading">Lade Verlauf...</p>}
+
+          {!loading && !error && (
+            <div className="history-chart-wrapper">
+              {history.length > 0 ? (
+                <ResponsiveContainer width="100%" height={320}>
+                  <LineChart data={chartData} margin={{ top: 20, right: 24, left: 0, bottom: 10 }}>
+                    <CartesianGrid stroke={gridColor} strokeDasharray="3 3" />
+                    <XAxis dataKey="label" tick={{ fill: axisColor, fontSize: 12 }} axisLine={{ stroke: axisColor }} tickLine={{ stroke: axisColor }} minTickGap={20} />
+                    <YAxis tick={{ fill: axisColor, fontSize: 12 }} axisLine={{ stroke: axisColor }} tickLine={{ stroke: axisColor }} />
+                    <Tooltip contentStyle={tooltipStyle} formatter={(value: any) => [value, props.unit]} />
+                    <Line type="monotone" dataKey="value" stroke={props.fill} strokeWidth={3} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <p style={{ textAlign: "center", padding: "40px 0" }}>Keine Verlaufdaten verfügbar.</p>
+              )}
+            </div>
+          )}
+
+          <div className="detail-summary">
+            <div>
+              <strong>Durchschnitt</strong>
+              <p>{average !== null ? `${average.toFixed(1)} ${props.unit}` : "-"}</p>
+            </div>
+            <div>
+              <strong>Anzahl Messwerte</strong>
+              <p>{history.length}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // 🔹 DETAIL
-function Detail({ title, value, unit }: any) {
+function Detail({ title, value, unit, types }: any) {
   const location = useLocation();
   const color = pageColors[location.pathname] || "#168ed8";
 
   return (
     <div>
-      <Topbar title={title} color={color} onRefresh={() => { }} />
+      <Topbar title={title} color={color} onRefresh={() => { }} types={types} />
 
       <div style={{ textAlign: "center", padding: "50px" }}>
         <h2>{value} {unit}</h2>
@@ -184,12 +332,14 @@ export default function Wetterstation() {
     }
   }, [darkMode]);
 
-  const [data] = useState<WeatherData>({
-    temp: 23,
-    hygro: 55,
-    lighting: 300,
-    uv: 6,
+  const [data, setData] = useState<WeatherData>({
+    temp: null,
+    hygro: null,
+    lighting: null,
+    uv: null,
   });
+  const [types, setTypes] = useState<Typ[]>([]);
+  const [currentValues, setCurrentValues] = useState<Record<string, number | null>>({});
   const [sensors, setSensors] = useState<Sensor[]>([]);
   const [sensorError, setSensorError] = useState<string | null>(null);
 
@@ -207,6 +357,57 @@ export default function Wetterstation() {
       return JSON.parse(text);
     } catch {
       return text;
+    }
+  };
+
+  const matchTypeKey = (typ: string) => {
+    const t = typ.toLowerCase();
+    if (t.includes("temp") || t.includes("temperatur") || t.includes("°c")) return "temp";
+    if (t.includes("hygro") || t.includes("luft") || t.includes("feucht")) return "hygro";
+    if (t.includes("licht") || t.includes("lx") || t.includes("lux")) return "lighting";
+    if (t.includes("uv")) return "uv";
+    return null;
+  };
+
+  const fetchCurrentValues = async () => {
+    try {
+      const res = await fetch("http://localhost:8000/aktuell");
+      const payload = await parseResponse(res);
+      if (!res.ok) throw new Error(payload?.error || "Konnte aktuelle Werte nicht laden");
+
+      // payload expected: array of { typ, einheit, sensor, wert, zeitstempel }
+      const newData: WeatherData = { temp: null, hygro: null, lighting: null, uv: null };
+      const map: Record<string, number | null> = {};
+      if (Array.isArray(payload)) {
+        payload.forEach((item: any) => {
+          const key = matchTypeKey(String(item.typ || ""));
+          if (!key) return;
+          const val = item.wert;
+          if (typeof val === "number") newData[key as keyof WeatherData] = val;
+          else if (!isNaN(Number(val))) newData[key as keyof WeatherData] = Number(val);
+          // also keep raw map by type name
+          const rawVal = (typeof item.wert === 'number') ? item.wert : (!isNaN(Number(item.wert)) ? Number(item.wert) : null);
+          map[item.typ] = rawVal;
+        });
+      }
+
+      setData(newData);
+      setCurrentValues(map);
+    } catch (err: any) {
+      console.log("Error fetching current values:", err);
+    }
+  };
+
+  const fetchTypes = async () => {
+    try {
+      const res = await fetch("http://localhost:8000/typen");
+      const payload = await parseResponse(res);
+      if (!res.ok) throw new Error(payload?.error || "Konnte Typen nicht laden");
+      if (Array.isArray(payload)) setTypes(payload);
+      else setTypes([]);
+    } catch (err: any) {
+      console.log("Error fetching types:", err);
+      setTypes([]);
     }
   };
 
@@ -319,6 +520,10 @@ export default function Wetterstation() {
 
   useEffect(() => {
     fetchSensors();
+    fetchTypes();
+    fetchCurrentValues();
+    const iv = setInterval(fetchCurrentValues, 10000);
+    return () => clearInterval(iv);
   }, []);
 
   return (
@@ -327,13 +532,14 @@ export default function Wetterstation() {
         <Routes>
 
           <Route path="/" element={
-            <Dashboard data={data} fetchData={fetchSensors} loading={loading} sensors={sensors} sensorError={sensorError} />
+            <Dashboard types={types} currentValues={currentValues} fetchData={fetchSensors} loading={loading} sensors={sensors} sensorError={sensorError} />
           } />
 
-          <Route path="/temperatur" element={<Detail title="🌡️ Temperatur" value={data.temp} unit="°C" />} />
-          <Route path="/luft" element={<Detail title="💧 Luftfeuchtigkeit" value={data.hygro} unit="%" />} />
-          <Route path="/licht" element={<Detail title="💡 Licht" value={data.lighting} unit="lx" />} />
-          <Route path="/uv" element={<Detail title="☀️ UV Index" value={data.uv} unit="" />} />
+          <Route path="/typ/:typName" element={<TypDetail darkMode={darkMode} types={types} />} />
+          <Route path="/temperatur" element={<Detail title="🌡️ Temperatur" value={data.temp} unit="°C" types={types} />} />
+          <Route path="/luft" element={<Detail title="💧 Luftfeuchtigkeit" value={data.hygro} unit="%" types={types} />} />
+          <Route path="/licht" element={<Detail title="💡 Licht" value={data.lighting} unit="lx" types={types} />} />
+          <Route path="/uv" element={<Detail title="☀️ UV Index" value={data.uv} unit="" types={types} />} />
 
         </Routes>
       </Router>
