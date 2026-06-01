@@ -72,3 +72,27 @@ NameError: name 'os' is not defined. Did you forget to import 'os'?
 2026-03-23 19:17:04 - Wetterstation - INFO - Seed-Daten eingetragen (Sensoren & Datentypen).
 2026-03-23 19:17:04 - Wetterstation - INFO - Datenbank erfolgreich initialisiert: /home/mbrueckl/Dokumente/Schule/2025.26/ITP/ITP2/Projekt Wetterstation/Wetterstation/database/WetterstationData.db
 2026-03-23 19:17:04 - Wetterstation - INFO - System bereit.
+2026-06-01 13:10:02 - Wetterstation - INFO - Wetterstation wird gestartet...
+2026-06-01 13:10:02 - Wetterstation - INFO - Tabellen und Indizes bereit.
+2026-06-01 13:10:02 - Wetterstation - INFO - Seed-Daten eingetragen (Sensoren & Datentypen).
+2026-06-01 13:10:02 - Wetterstation - INFO - Datenbank erfolgreich initialisiert: /home/mbrueckl/Dokumente/Schule/2025.26/ITP/ITP2/Projekt Wetterstation/Wetterstation/database/WetterstationData.db
+2026-06-01 13:10:02 - Wetterstation - INFO - Starte init script: /home/admin/Wetterstation/backend/init_api.sh
+2026-06-01 13:10:02 - Wetterstation - CRITICAL - init_api.sh fehlgeschlagen (Code 127): bash: /home/admin/Wetterstation/backend/init_api.sh: Datei oder Verzeichnis nicht gefunden
+2026-06-01 13:10:47 - Wetterstation - INFO - Wetterstation wird gestartet...
+2026-06-01 13:10:47 - Wetterstation - INFO - Tabellen und Indizes bereit.
+2026-06-01 13:10:47 - Wetterstation - INFO - Seed-Daten eingetragen (Sensoren & Datentypen).
+2026-06-01 13:10:47 - Wetterstation - INFO - Datenbank erfolgreich initialisiert: /home/mbrueckl/Dokumente/Schule/2025.26/ITP/ITP2/Projekt Wetterstation/Wetterstation/database/WetterstationData.db
+2026-06-01 13:10:47 - Wetterstation - INFO - Starte init script: /home/admin/Wetterstation/backend/init_api.sh
+2026-06-01 13:10:47 - Wetterstation - CRITICAL - init_api.sh fehlgeschlagen (Code 127): bash: /home/admin/Wetterstation/backend/init_api.sh: Datei oder Verzeichnis nicht gefunden
+2026-06-01 13:10:57 - Wetterstation - INFO - Wetterstation wird gestartet...
+2026-06-01 13:10:57 - Wetterstation - INFO - Tabellen und Indizes bereit.
+2026-06-01 13:10:57 - Wetterstation - INFO - Seed-Daten eingetragen (Sensoren & Datentypen).
+2026-06-01 13:10:57 - Wetterstation - INFO - Datenbank erfolgreich initialisiert: /home/mbrueckl/Dokumente/Schule/2025.26/ITP/ITP2/Projekt Wetterstation/Wetterstation/database/WetterstationData.db
+2026-06-01 13:10:57 - Wetterstation - INFO - Starte init script: /home/admin/Wetterstation/backend/init_api.sh
+2026-06-01 13:10:57 - Wetterstation - CRITICAL - init_api.sh fehlgeschlagen (Code 127): bash: /home/admin/Wetterstation/backend/init_api.sh: Datei oder Verzeichnis nicht gefunden
+2026-06-01 13:12:16 - Wetterstation - INFO - Wetterstation wird gestartet...
+2026-06-01 13:12:16 - Wetterstation - INFO - Tabellen und Indizes bereit.
+2026-06-01 13:12:16 - Wetterstation - INFO - Seed-Daten eingetragen (Sensoren & Datentypen).
+2026-06-01 13:12:16 - Wetterstation - INFO - Datenbank erfolgreich initialisiert: /home/mbrueckl/Dokumente/Schule/2025.26/ITP/ITP2/Projekt Wetterstation/Wetterstation/database/WetterstationData.db
+2026-06-01 13:12:16 - Wetterstation - INFO - Starte init script: ./init_api.sh
+2026-06-01 13:12:16 - Wetterstation - CRITICAL - init_api.sh fehlgeschlagen (Code 1): ./init_api.sh: Zeile 1: cd: /home/admin/Wetterstation/backend/api/: Datei oder Verzeichnis nicht gefunden

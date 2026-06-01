@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import { RadialBarChart, RadialBar, PolarAngleAxis, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, useParams } from "react-router-dom";
 
-const SENSOR_API_URL = "http://localhost:8000/sensors";
+const SENSOR_API_URL = "/api/sensors";
 
 interface WeatherData {
   temp: number | null;
   hygro: number | null;
-  lighting: number | null;
+  wind: number | null;
   uv: number | null;
 }
 
@@ -32,7 +32,7 @@ const pageColors: Record<string, string> = {
   "/": "linear-gradient(90deg, #168ed8, #06cef1)",
   "/temperatur": "linear-gradient(90deg, #ef4444, #f97316)",
   "/luft": "linear-gradient(90deg, #3b82f6, #06cef1)",
-  "/licht": "linear-gradient(90deg, #f59e0b, #fde047)",
+  "/wind": "linear-gradient(90deg, #7c3aed, #a855f7)",
   "/uv": "linear-gradient(90deg, #22c55e, #4adea8)",
 };
 
@@ -40,7 +40,7 @@ const getPageColorByType = (name: string) => {
   const t = name.toLowerCase();
   if (t.includes("temp") || t.includes("temperatur")) return pageColors["/temperatur"];
   if (t.includes("hygro") || t.includes("luft") || t.includes("feucht")) return pageColors["/luft"];
-  if (t.includes("licht") || t.includes("lx") || t.includes("lux")) return pageColors["/licht"];
+  if (t.includes("wind")) return pageColors["/wind"];
   if (t.includes("uv")) return pageColors["/uv"];
   return pageColors["/"];
 };
@@ -56,15 +56,27 @@ const getChartProps = (name: string, einheit?: string, value?: number | null) =>
   if (t.includes("uv")) {
     const uv = value ?? 0;
     let fill = "#22c55e";
-    if (uv >= 11) fill = "#8b5cf6";
-    else if (uv >= 8) fill = "#f97316";
-    else if (uv >= 6) fill = "#f59e0b";
-    else if (uv >= 3) fill = "#eab308";
-    else fill = "#22c55e";
+    if (uv >= 15 && uv < 16) fill = "#A77AE4";
+    else if (uv >= 14 && uv < 15) fill = "#9063CD";
+    else if (uv >= 13 && uv < 14) fill = "#794CB6";
+    else if (uv >= 12 && uv < 13) fill = "#62359F";
+    else if (uv >= 11 && uv < 12) fill = "#4B1E88";
+    else if (uv >= 10 && uv < 11) fill = "#BF0D3E";
+    else if (uv >= 9 && uv < 10) fill = "#DA291C";
+    else if (uv >= 8 && uv < 9) fill = "#EF3340";
+    else if (uv >= 7 && uv < 8) fill = "#FF8200";
+    else if (uv >= 6 && uv < 7) fill = "#ECA154";
+    else if (uv >= 5 && uv < 6) fill = "#FFCD00";
+    else if (uv >= 4 && uv < 5) fill = "#FCE300";
+    else if (uv >= 3 && uv < 4) fill = "#F7EA48";
+    else if (uv >= 2 && uv < 3) fill = "#97D700";
+    else if (uv >= 1 && uv < 2) fill = "#84BD00";
+    else if (uv >= 0 && uv < 1) fill = "#658D1B";
+    else fill = "#658D1B"; // Fallback für Werte unter 0 oder unerwartete Eingaben
     return { domain: [0, 11], fill, unit: "" };
   }
-  if (t.includes("druck") || (einheit || "").toLowerCase().includes("hpa") || (einheit || "").toLowerCase().includes("bar")) {
-    return { domain: [900, 1100], fill: "#7c3aed", unit: "hPa" };
+  if (t.includes("wind") || t.includes("druck") || (einheit || "").toLowerCase().includes("km/h") || (einheit || "").toLowerCase().includes("m/s")) {
+    return { domain: [0, 100], fill: "#7c3aed", unit: "km/h" };
   }
   return { domain: [0, 100], fill: "#888", unit: einheit || "" };
 };
@@ -89,7 +101,7 @@ function Topbar({ title, color, onRefresh, types }: any) {
           {types && types.length > 0 && (
             <>
               <hr style={{ margin: '10px 0', borderColor: '#d1d5db' }} />
-              {types.map((typ: Typ) => (
+              {types.filter((typ: Typ) => !/(licht|lx|lux)/i.test(typ.name)).map((typ: Typ) => (
                 <Link key={typ.typ_id} to={`/typ/${encodeURIComponent(typ.name)}`} onClick={() => setMenuOpen(false)}>
                   {typ.name}
                 </Link>
@@ -122,7 +134,7 @@ function Dashboard({ types, currentValues, fetchData, loading }: any) {
           {types && types.length > 0 && (
             <>
               <hr style={{ margin: '10px 0', borderColor: '#d1d5db' }} />
-              {types.map((typ: Typ) => (
+              {types.filter((typ: Typ) => !/(licht|lx|lux)/i.test(typ.name)).map((typ: Typ) => (
                 <Link key={typ.typ_id} to={`/typ/${encodeURIComponent(typ.name)}`} onClick={() => setMenuOpen(false)}>
                   {typ.name}
                 </Link>
@@ -134,7 +146,7 @@ function Dashboard({ types, currentValues, fetchData, loading }: any) {
 
       <div className="grid">
         {types && types.length > 0 ? (
-          types.map((typ: Typ) => {
+          types.filter((typ: Typ) => !/(licht|lx|lux)/i.test(typ.name)).map((typ: Typ) => {
             const val = currentValues?.[typ.name] ?? null;
             const props = getChartProps(typ.name, typ.einheit, val);
             return (
@@ -196,7 +208,7 @@ function TypDetail({ darkMode, types }: { darkMode: boolean; types: Typ[] }) {
     setError(null);
 
     try {
-      const res = await fetch(`http://localhost:8000/history/${encodeURIComponent(typName)}?zeitraum=${range}`);
+      const res = await fetch(`/history/${encodeURIComponent(typName)}?zeitraum=${range}`);
       const payload = await parseResponse(res);
       if (!res.ok) throw new Error(payload?.error || "Verlauf konnte nicht geladen werden");
       if (!Array.isArray(payload)) throw new Error("Ungültige Daten vom Server");
@@ -223,6 +235,20 @@ function TypDetail({ darkMode, types }: { darkMode: boolean; types: Typ[] }) {
 
   const formattedLabel = typName ? decodeURIComponent(typName) : "";
   const color = getPageColorByType(formattedLabel);
+
+  const formatChartTimestamp = (value: any) => {
+    const stringValue = value == null ? "" : String(value);
+    const date = new Date(stringValue);
+    if (Number.isNaN(date.getTime())) return stringValue;
+    return date.toLocaleString("de-DE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   const chartData = history.map((item) => ({ label: item.zeitstempel, value: item.wert }));
   const average = history.length > 0 ? history.reduce((sum, item) => sum + item.wert, 0) / history.length : null;
   const axisColor = darkMode ? "#cbd5e1" : "#475569";
@@ -233,6 +259,12 @@ function TypDetail({ darkMode, types }: { darkMode: boolean; types: Typ[] }) {
     color: darkMode ? "#e2e8f0" : "#0f172a",
   };
   const props = getChartProps(formattedLabel, history[0]?.einheit, history[history.length - 1]?.wert ?? null);
+
+  const formatTooltipValue = (value: any, unit: string) => {
+    if (value === null || value === undefined) return "-";
+    const valueString = String(value);
+    return unit ? `${valueString} ${unit}` : valueString;
+  };
 
   return (
     <div>
@@ -265,9 +297,21 @@ function TypDetail({ darkMode, types }: { darkMode: boolean; types: Typ[] }) {
                 <ResponsiveContainer width="100%" height={320}>
                   <LineChart data={chartData} margin={{ top: 20, right: 24, left: 0, bottom: 10 }}>
                     <CartesianGrid stroke={gridColor} strokeDasharray="3 3" />
-                    <XAxis dataKey="label" tick={{ fill: axisColor, fontSize: 12 }} axisLine={{ stroke: axisColor }} tickLine={{ stroke: axisColor }} minTickGap={20} />
+                    <XAxis
+                      dataKey="label"
+                      tick={{ fill: axisColor, fontSize: 12 }}
+                      axisLine={{ stroke: axisColor }}
+                      tickLine={{ stroke: axisColor }}
+                      minTickGap={20}
+                      tickFormatter={formatChartTimestamp}
+                    />
                     <YAxis tick={{ fill: axisColor, fontSize: 12 }} axisLine={{ stroke: axisColor }} tickLine={{ stroke: axisColor }} />
-                    <Tooltip contentStyle={tooltipStyle} formatter={(value: any) => [value, props.unit]} />
+                    <Tooltip
+                      contentStyle={tooltipStyle}
+                      labelFormatter={formatChartTimestamp}
+                      formatter={(value: any) => [formatTooltipValue(value, props.unit), ""]}
+                      separator=" "
+                    />
                     <Line type="monotone" dataKey="value" stroke={props.fill} strokeWidth={3} dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
@@ -332,10 +376,14 @@ export default function Wetterstation() {
     }
   }, [darkMode]);
 
+  useEffect(() => {
+    document.documentElement.style.fontSize = `${fontSize}px`;
+  }, [fontSize]);
+
   const [data, setData] = useState<WeatherData>({
     temp: null,
     hygro: null,
-    lighting: null,
+    wind: null,
     uv: null,
   });
   const [types, setTypes] = useState<Typ[]>([]);
@@ -364,19 +412,19 @@ export default function Wetterstation() {
     const t = typ.toLowerCase();
     if (t.includes("temp") || t.includes("temperatur") || t.includes("°c")) return "temp";
     if (t.includes("hygro") || t.includes("luft") || t.includes("feucht")) return "hygro";
-    if (t.includes("licht") || t.includes("lx") || t.includes("lux")) return "lighting";
+    if (t.includes("wind")) return "wind";
     if (t.includes("uv")) return "uv";
     return null;
   };
 
   const fetchCurrentValues = async () => {
     try {
-      const res = await fetch("http://localhost:8000/aktuell");
+      const res = await fetch("/api/aktuell");
       const payload = await parseResponse(res);
       if (!res.ok) throw new Error(payload?.error || "Konnte aktuelle Werte nicht laden");
 
       // payload expected: array of { typ, einheit, sensor, wert, zeitstempel }
-      const newData: WeatherData = { temp: null, hygro: null, lighting: null, uv: null };
+      const newData: WeatherData = { temp: null, hygro: null, wind: null, uv: null };
       const map: Record<string, number | null> = {};
       if (Array.isArray(payload)) {
         payload.forEach((item: any) => {
@@ -400,7 +448,7 @@ export default function Wetterstation() {
 
   const fetchTypes = async () => {
     try {
-      const res = await fetch("http://localhost:8000/typen");
+      const res = await fetch("/api/typen");
       const payload = await parseResponse(res);
       if (!res.ok) throw new Error(payload?.error || "Konnte Typen nicht laden");
       if (Array.isArray(payload)) setTypes(payload);
@@ -538,7 +586,6 @@ export default function Wetterstation() {
           <Route path="/typ/:typName" element={<TypDetail darkMode={darkMode} types={types} />} />
           <Route path="/temperatur" element={<Detail title="🌡️ Temperatur" value={data.temp} unit="°C" types={types} />} />
           <Route path="/luft" element={<Detail title="💧 Luftfeuchtigkeit" value={data.hygro} unit="%" types={types} />} />
-          <Route path="/licht" element={<Detail title="💡 Licht" value={data.lighting} unit="lx" types={types} />} />
           <Route path="/uv" element={<Detail title="☀️ UV Index" value={data.uv} unit="" types={types} />} />
 
         </Routes>
@@ -601,8 +648,8 @@ export default function Wetterstation() {
                       ? "Aktualisiere..."
                       : "Suche nach WLANs..."
                     : networks.length
-                    ? `${networks.length} Netzwerk${networks.length === 1 ? "" : "e"}`
-                    : "keine Netzwerke gefunden"}
+                      ? `${networks.length} Netzwerk${networks.length === 1 ? "" : "e"}`
+                      : "keine Netzwerke gefunden"}
                 </span>
               </div>
 
@@ -654,7 +701,7 @@ export default function Wetterstation() {
                   boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
                 }}>
                   <h3>Passwort für "{passwordModal}"</h3>
-                  <p style={{ fontSize: "12px", color: "#666" }}>Lass das Feld leer, wenn das Netzwerk offen ist</p>
+                  <p style={{ fontSize: "0.75rem", color: "#666" }}>Lass das Feld leer, wenn das Netzwerk offen ist</p>
                   <input
                     type="password"
                     value={passwordInput}

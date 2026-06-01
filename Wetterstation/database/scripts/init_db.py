@@ -78,8 +78,8 @@ def init_DB(db_path: str = DEFAULT_DB_PATH) -> bool:
                 "INSERT OR IGNORE INTO sensor (name, typ) VALUES (?, ?);",
                 [
                     ("DHT22",    "Temperatur/Luftfeuchtigkeit"),
-                    ("BME280",   "Temperatur/Druck"),
-                    ("VEML6075", "UV"),
+                    ("US5881LUA",   "Windgeschwindigkeit"),
+                    ("VEML7700", "UV"),
                 ]
             )
 
@@ -89,7 +89,7 @@ def init_DB(db_path: str = DEFAULT_DB_PATH) -> bool:
                 [
                     ("Temperatur",       "°C"),
                     ("Luftfeuchtigkeit", "%rH"),
-                    ("Luftdruck",        "hPa"),
+                    ("Windgeschwindigkeit", "km/h"),
                     ("UV-Index",         "UV"),
                 ]
             )

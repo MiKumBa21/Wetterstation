@@ -2,6 +2,7 @@
   font-family: system-ui, Arial, sans-serif;
   background: #eef2f7;
   color: #1f2937;
+  font-size: 1rem;
 }
 
 body {
@@ -13,7 +14,7 @@ body {
 .topbar {
   background: #168ed8;
   color: white;
-  padding: 16px 20px;
+  padding: 1rem 1.25rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -23,7 +24,7 @@ body {
   background: rgba(255, 255, 255, 0.2);
   border: none;
   color: white;
-  font-size: 18px;
+  font-size: 1.125rem;
   padding: 10px 14px;
   border-radius: 10px;
   cursor: pointer;
@@ -47,12 +48,12 @@ body {
 }
 
 .card h2 {
-  font-size: 16px;
-  margin-bottom: 12px;
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .value {
-  font-size: 26px;
+  font-size: 1.625rem;
   font-weight: 700;
 }
 
@@ -60,8 +61,8 @@ button {
   background: #168ed8;
   color: white;
   border: none;
-  padding: 10px 14px;
-  border-radius: 10px;
+  padding: 0.625rem 0.875rem;
+  border-radius: 0.625rem;
   cursor: pointer;
 }
 
@@ -107,8 +108,8 @@ button:hover {
   background: #f3f4f6;
   color: #0f172a;
   border: none;
-  padding: 10px 16px;
-  border-radius: 12px;
+  padding: 0.625rem 1rem;
+  border-radius: 0.75rem;
   cursor: pointer;
 }
 
@@ -196,15 +197,15 @@ body.dark .detail-loading {
 
 .settings-btn {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 52px;
-  height: 52px;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  width: 3.25rem;
+  height: 3.25rem;
   border-radius: 50%;
   border: none;
   background: #168ed8;
   color: white;
-  font-size: 20px;
+  font-size: 1.25rem;
   cursor: pointer;
 }
 
@@ -235,7 +236,7 @@ body.dark .detail-loading {
 
 .setting label {
   font-weight: 600;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 .current-wifi {
@@ -244,7 +245,7 @@ body.dark .detail-loading {
   padding: 10px 12px;
   border-radius: 12px;
   margin-bottom: 12px;
-  font-size: 14px;
+  font-size: 0.875rem;
   border: 1px solid #4db8ae;
 }
 
@@ -289,7 +290,7 @@ body.dark .current-wifi {
 
 .wifi-status {
   color: #475569;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 .wifi-error {
@@ -331,9 +332,9 @@ body.dark .current-wifi {
 
 .wifi-empty {
   color: #64748b;
-  font-size: 14px;
-  padding: 14px;
-  border-radius: 14px;
+  font-size: 0.875rem;
+  padding: 0.875rem;
+  border-radius: 0.875rem;
   background: #f1f5f9;
   text-align: center;
 }
