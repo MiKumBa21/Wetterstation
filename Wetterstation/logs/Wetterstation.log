@@ -96,3 +96,9 @@ NameError: name 'os' is not defined. Did you forget to import 'os'?
 2026-06-01 13:12:16 - Wetterstation - INFO - Datenbank erfolgreich initialisiert: /home/mbrueckl/Dokumente/Schule/2025.26/ITP/ITP2/Projekt Wetterstation/Wetterstation/database/WetterstationData.db
 2026-06-01 13:12:16 - Wetterstation - INFO - Starte init script: ./init_api.sh
 2026-06-01 13:12:16 - Wetterstation - CRITICAL - init_api.sh fehlgeschlagen (Code 1): ./init_api.sh: Zeile 1: cd: /home/admin/Wetterstation/backend/api/: Datei oder Verzeichnis nicht gefunden
+2026-06-03 08:08:18 - Wetterstation - INFO - Wetterstation wird gestartet...
+2026-06-03 08:08:18 - Wetterstation - INFO - Tabellen und Indizes bereit.
+2026-06-03 08:08:18 - Wetterstation - INFO - Seed-Daten eingetragen (Sensoren & Datentypen).
+2026-06-03 08:08:18 - Wetterstation - INFO - Datenbank erfolgreich initialisiert: /home/mbrueckl/Dokumente/Schule/2025.26/ITP/ITP2/Projekt Wetterstation/Wetterstation/database/WetterstationData.db
+2026-06-03 08:08:18 - Wetterstation - INFO - Starte init script: ./init_api.sh
+2026-06-03 08:08:18 - Wetterstation - CRITICAL - init_api.sh fehlgeschlagen (Code 1): ./init_api.sh: Zeile 1: cd: /home/admin/Wetterstation/backend/api/: Datei oder Verzeichnis nicht gefunden

@@ -1,6 +1,12 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 import sqlite3
+import json
+from pathlib import Path
+import subprocess
+
+WIFI_SCRIPT = Path(__file__).resolve().parent.parent / "wifi.sh"
 
 app = FastAPI()
 
@@ -96,3 +102,51 @@ def history_flexibel(
     zeitraum: str = Query(default="7tage", enum=list(ZEITRAUM_MAP.keys()))
 ):
     return query_history(typ_name, ZEITRAUM_MAP[zeitraum])
+
+
+class WifiConnectRequest(BaseModel):
+    ssid: str
+    password: str | None = None
+
+@app.get("/wifi")
+def get_wifi_networks():
+    if not WIFI_SCRIPT.exists():
+        raise HTTPException(status_code=500, detail="WLAN-Skript nicht gefunden")
+    try:
+        result = subprocess.run(["bash", str(WIFI_SCRIPT), "scan"], capture_output=True, text=True, check=True)
+        return json.loads(result.stdout)
+    except subprocess.CalledProcessError as e:
+        raise HTTPException(status_code=500, detail=(e.stderr or e.stdout or "WLAN-Scan fehlgeschlagen").strip())
+    except json.JSONDecodeError as e:
+        raise HTTPException(status_code=500, detail=f"Ungültige WLAN-Antwort: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/wifi/connect")
+def connect_wifi(request: WifiConnectRequest):
+    if not WIFI_SCRIPT.exists():
+        raise HTTPException(status_code=500, detail="WLAN-Skript nicht gefunden")
+    try:
+        args = ["bash", str(WIFI_SCRIPT), "connect", request.ssid]
+        if request.password:
+            args.append(request.password)
+        result = subprocess.run(args, capture_output=True, text=True, check=True)
+        return {"message": result.stdout.strip() or f"Mit {request.ssid} verbunden"}
+    except subprocess.CalledProcessError as e:
+        raise HTTPException(status_code=500, detail=(e.stderr or e.stdout or "Verbindung fehlgeschlagen").strip())
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/wifi/status")
+def get_wifi_status():
+    if not WIFI_SCRIPT.exists():
+        raise HTTPException(status_code=500, detail="WLAN-Skript nicht gefunden")
+    try:
+        result = subprocess.run(["bash", str(WIFI_SCRIPT), "status"], capture_output=True, text=True, check=True)
+        return json.loads(result.stdout)
+    except subprocess.CalledProcessError as e:
+        raise HTTPException(status_code=500, detail=(e.stderr or e.stdout or "WLAN-Status konnte nicht geladen werden").strip())
+    except json.JSONDecodeError as e:
+        raise HTTPException(status_code=500, detail=f"Ungültige WLAN-Antwort: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
