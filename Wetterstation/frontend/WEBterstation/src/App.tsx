@@ -1,41 +1,65 @@
+// ============================================================================
+// Wetterstation Frontend Application
+// ============================================================================
+// Eine vollständige Wetterstation-Anwendung mit:
+// - Dashboard zur Anzeige aktueller Messwerte
+// - Detailansichten mit historischen Daten
+// - WLAN-Verwaltung (Scannen, Verbinden)
+// - Dark Mode und Schriftgröße-Anpassung
+// ============================================================================
+
 import { useEffect, useState } from "react";
 import { RadialBarChart, RadialBar, PolarAngleAxis, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
-import { BrowserRouter as Router, Routes, Route, Link, useLocation, useParams } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Link, useParams } from "react-router-dom";
 
-const SENSOR_API_URL = "/api/sensors";
+// ============================================================================
+// Type Definitions
+// ============================================================================
 
-interface WeatherData {
-  temp: number | null;
-  hygro: number | null;
-  wind: number | null;
-  uv: number | null;
-}
-
-interface Sensor {
-  sensor_id: number;
-  name: string;
-  typ: string;
-}
-
+/** Datentyp-Interface: Repräsentiert einen Messwerttyp (z.B. Temperatur, Luftfeuchte) */
 interface Typ {
-  typ_id: number;
-  name: string;
-  einheit?: string;
+  typ_id: number;           // Eindeutige ID des Datentyps
+  name: string;             // Name des Typs (z.B. "Temperatur")
+  einheit?: string;         // Einheit (z.B. "°C", "%", "Lux")
 }
 
-const createChartData = (value: number | null) => [
-  { name: "value", value: value ?? 0 },
-];
+/** Historischer Datensatz: Ein einzelner Messwert aus der Vergangenheit */
+interface HistoryEntry {
+  typ: string;              // Name des Datentyps
+  einheit: string;          // Einheit des Messwerts
+  sensor: string;           // Name des Sensors
+  wert: number;             // Messwert
+  zeitstempel: string;      // ISO-8601 Zeitstempel
+}
 
-// 🔹 Farben pro Seite
-const pageColors: Record<string, string> = {
-  "/": "linear-gradient(90deg, #168ed8, #06cef1)",
-  "/temperatur": "linear-gradient(90deg, #ef4444, #f97316)",
-  "/luft": "linear-gradient(90deg, #3b82f6, #06cef1)",
-  "/wind": "linear-gradient(90deg, #72faf6, #98f9f6)",
-  "/uv": "linear-gradient(90deg, #22c55e, #4adea8)",
+/** WLAN-Netzwerk: Informationen über verfügbare Netzwerke */
+type WifiNetwork = {
+  ssid: string;             // Netzwerkname
+  security: string;         // Sicherheitstyp (z.B. "WPA2", "WPA3")
+  signal: number;           // Signalstärke in %
 };
 
+// ============================================================================
+// Helper Functions - Chart Data Formatting & Styling
+// ============================================================================
+
+/**
+ * Erstellt Daten-Array für Recharts RadialBarChart.
+ * @param value Der anzuzeigende Wert (null wird zu 0)
+ * @returns Array mit formatierten Chartdaten
+ */
+const createChartData = (value: number | null) => [{ name: "value", value: value ?? 0 }];
+
+const formatDashboardValue = (value: number | null) => {
+  if (value === null) return "-";
+  const formatted = value.toFixed(2).replace(/\.0+$|(?<=\.[0-9])0+$/, "");
+  return formatted;
+};
+
+/**
+ * Bestimmt die Chartfarbe basierend auf Temperaturwert.
+ * Spektrum: Rot (heiß) → Orange → Gelb → Grün → Blau → Dunkelblau (kalt)
+ */
 const getTemperatureFill = (value?: number | null) => {
   const temp = value ?? 0;
   if (temp >= 32) return "#ef4444";
@@ -48,31 +72,31 @@ const getTemperatureFill = (value?: number | null) => {
   return "#888";
 };
 
-const getUVFill = (value?: number | null) => {
-  const uv = value ?? 0;
-  let fill = "#888";
-  if (uv >= 15 && uv < 16) fill = "#A77AE4";
-  else if (uv >= 14 && uv < 15) fill = "#9063CD";
-  else if (uv >= 13 && uv < 14) fill = "#794CB6";
-  else if (uv >= 12 && uv < 13) fill = "#62359F";
-  else if (uv >= 11 && uv < 12) fill = "#4B1E88";
-  else if (uv >= 10 && uv < 11) fill = "#BF0D3E";
-  else if (uv >= 9 && uv < 10) fill = "#DA291C";
-  else if (uv >= 8 && uv < 9) fill = "#EF3340";
-  else if (uv >= 7 && uv < 8) fill = "#FF8200";
-  else if (uv >= 6 && uv < 7) fill = "#ECA154";
-  else if (uv >= 5 && uv < 6) fill = "#FFCD00";
-  else if (uv >= 4 && uv < 5) fill = "#FCE300";
-  else if (uv >= 3 && uv < 4) fill = "#F7EA48";
-  else if (uv >= 2 && uv < 3) fill = "#97D700";
-  else if (uv >= 1 && uv < 2) fill = "#84BD00";
-  else if (uv >= 0 && uv < 1) fill = "#658D1B";
-  return fill;
+/**
+ * Bestimmt die Chartfarbe basierend auf Beleuchtungsstärke (Lux).
+ * Von dunkel (schwach) zu orange/braun (stark)
+ */
+const getLuxFill = (value?: number | null) => {
+  const lux = value ?? 0;
+  if (lux >= 140000) return "#b45309";
+  if (lux >= 100000) return "#d97706";
+  if (lux >= 70000) return "#f59e0b";
+  if (lux >= 40000) return "#fbbf24";
+  if (lux >= 20000) return "#facc15";
+  if (lux >= 10000) return "#fde68a";
+  if (lux >= 5000) return "#fef08a";
+  if (lux >= 2000) return "#fef9c3";
+  if (lux >= 500) return "#fefce8";
+  return "#fffbeb";
 };
 
+/**
+ * Bestimmt die Chartfarbe basierend auf Windgeschwindigkeit.
+ * Spektrum: Grün (schwach) → Gelb → Orange → Rot → Violett (Sturm)
+ */
 const getWindFill = (value?: number | null) => {
   const wind = value ?? 0;
-  if (wind > 117) return "#22d3ee"; 
+  if (wind > 117) return "#22d3ee";
   if (wind >= 103) return "#0ea5e9";
   if (wind >= 89) return "#2563eb";
   if (wind >= 75) return "#6366f1";
@@ -82,11 +106,15 @@ const getWindFill = (value?: number | null) => {
   if (wind >= 29) return "#fb923c";
   if (wind >= 20) return "#facc15";
   if (wind >= 12) return "#a3e635";
-  if (wind >= 6) return "#22c55e"; 
-  if (wind >= 1) return "#4ade80"; 
-  return "#888"; 
-}
+  if (wind >= 6) return "#22c55e";
+  if (wind >= 1) return "#4ade80";
+  return "#888";
+};
 
+/**
+ * Bestimmt Chart-Eigenschaften (Domain, Farbe, Einheit) basierend auf Datentyp.
+ * Automatische Erkennung via Name oder Einheit des Messwerts.
+ */
 const getChartProps = (name: string, einheit?: string, value?: number | null) => {
   const t = name.toLowerCase();
   if (t.includes("temp") || t.includes("temperatur") || (einheit || "").toLowerCase().includes("c")) {
@@ -95,8 +123,8 @@ const getChartProps = (name: string, einheit?: string, value?: number | null) =>
   if (t.includes("hygro") || t.includes("feucht") || (einheit || "").toLowerCase().includes("%")) {
     return { domain: [0, 100], fill: "#3b82f6", unit: "%" };
   }
-  if (t.includes("uv")) {
-    return { domain: [0, 11], fill: getUVFill(value), unit: "" };
+  if (t.includes("licht") || t.includes("lux") || t.includes("beleuchtungsstärke")) {
+    return { domain: [0, 140000], fill: getLuxFill(value), unit: "Lux" };
   }
   if (t.includes("wind") || t.includes("druck") || (einheit || "").toLowerCase().includes("km/h") || (einheit || "").toLowerCase().includes("m/s")) {
     return { domain: [0, 100], fill: getWindFill(value), unit: "km/h" };
@@ -104,8 +132,8 @@ const getChartProps = (name: string, einheit?: string, value?: number | null) =>
   return { domain: [0, 100], fill: "#888", unit: einheit || "" };
 };
 
-// 🔹 TOPBAR
-function Topbar({ title, color, onRefresh, types }: any) {
+function Topbar({ title, color, onRefresh, types }: { title: string; color: string; onRefresh: () => void; types: Typ[] }) {
+  // Zustand für das Menü (offen/geschlossen)
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -116,19 +144,25 @@ function Topbar({ title, color, onRefresh, types }: any) {
         <button onClick={onRefresh}>↻</button>
       </div>
 
+      {/* Dropdown-Menü mit Navigation zu allen Seiten */}
       {menuOpen && (
         <div className="menu">
           <h2>Menü</h2>
-
-          <Link to="/" onClick={() => setMenuOpen(false)}>Dashboard</Link>
-          {types && types.length > 0 && (
+          {/* Link zurück zum Dashboard */}
+          <Link to="/" onClick={() => setMenuOpen(false)}>
+            Dashboard
+          </Link>
+          {types.length > 0 && (
             <>
-              <hr style={{ margin: '10px 0', borderColor: '#d1d5db' }} />
-              {types.filter((typ: Typ) => !/(licht|lx|lux)/i.test(typ.name)).map((typ: Typ) => (
-                <Link key={typ.typ_id} to={`/typ/${encodeURIComponent(typ.name)}`} onClick={() => setMenuOpen(false)}>
-                  {typ.name}
-                </Link>
-              ))}
+              <hr style={{ margin: "10px 0", borderColor: "#d1d5db" }} />
+              {/* Navigation zu Detailseiten für alle Typen (außer Lux) */}
+              {types
+                .filter((typ) => !/(licht|lx|lux)/i.test(typ.name))
+                .map((typ) => (
+                  <Link key={typ.typ_id} to={`/typ/${encodeURIComponent(typ.name)}`} onClick={() => setMenuOpen(false)}>
+                    {typ.name}
+                  </Link>
+                ))}
             </>
           )}
         </div>
@@ -137,71 +171,45 @@ function Topbar({ title, color, onRefresh, types }: any) {
   );
 }
 
-// 🔹 DASHBOARD
-function Dashboard({ types, currentValues, onRefresh, loading }: any) {
-  const [menuOpen, setMenuOpen] = useState(false);
-
+function Dashboard({ types, currentValues, onRefresh, loading }: { types: Typ[]; currentValues: Record<string, number | null>; onRefresh: () => void; loading: boolean }) {
   return (
     <div>
-      <div className="topbar">
-        <button onClick={() => setMenuOpen(!menuOpen)}>☰</button>
-        <h1>Wetterstation</h1>
-        <button onClick={onRefresh}>↻</button>
-      </div>
-
-      {menuOpen && (
-        <div className="menu">
-          <h2>Menü</h2>
-
-          <Link to="/" onClick={() => setMenuOpen(false)}>Dashboard</Link>
-          {types && types.length > 0 && (
-            <>
-              <hr style={{ margin: '10px 0', borderColor: '#d1d5db' }} />
-              {types.filter((typ: Typ) => !/(licht|lx|lux)/i.test(typ.name)).map((typ: Typ) => (
-                <Link key={typ.typ_id} to={`/typ/${encodeURIComponent(typ.name)}`} onClick={() => setMenuOpen(false)}>
-                  {typ.name}
-                </Link>
-              ))}
-            </>
-          )}
-        </div>
-      )}
-
+      <Topbar title="Wetterstation" color="#3b82f6" onRefresh={onRefresh} types={types} />
+      {/* Grid mit RadialBarCharts für jeden Datentyp */}
       <div className="grid">
-        {types && types.length > 0 ? (
-          types.filter((typ: Typ) => !/(licht|lx|lux)/i.test(typ.name)).map((typ: Typ) => {
-            const val = currentValues?.[typ.name] ?? null;
-            const props = getChartProps(typ.name, typ.einheit, val);
-            return (
-              <Link key={typ.typ_id} to={`/typ/${encodeURIComponent(typ.name)}`} className="card">
-                <h2>{typ.name}</h2>
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 180 }}>
-                  <RadialBarChart width={250} height={180} cx="50%" cy="75%" innerRadius="60%" outerRadius="100%" startAngle={180} endAngle={0} data={createChartData(val)}>
-                    <PolarAngleAxis type="number" domain={props.domain as any} tick={false} />
-                    <RadialBar dataKey="value" fill={props.fill} />
-                  </RadialBarChart>
-                </div>
-                <div className="value" style={{ textAlign: 'center' }}>{val ?? "-"} {props.unit}</div>
-              </Link>
-            );
-          })
+        {types.length > 0 ? (
+          // Filtert Lux aus (wird separat angezeigt) und erstellt Chart für jeden Typ
+          types
+            .filter((typ) => !/(licht|lx|lux)/i.test(typ.name))
+            .map((typ) => {
+              const value = currentValues?.[typ.name] ?? null;
+              const chartProps = getChartProps(typ.name, typ.einheit, value);
+              // Jede Karte ist ein Link zur Detailseite
+              return (
+                <Link key={typ.typ_id} to={`/typ/${encodeURIComponent(typ.name)}`} className="card">
+                  <h2>{typ.name}</h2>
+                  {/* RadialBarChart zur Visualisierung des aktuellen Wertes */}
+                  <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: 180 }}>
+                    <RadialBarChart width={250} height={180} cx="50%" cy="75%" innerRadius="60%" outerRadius="100%" startAngle={180} endAngle={0} data={createChartData(value)}>
+                      <PolarAngleAxis type="number" domain={chartProps.domain as any} tick={false} />
+                      <RadialBar dataKey="value" fill={chartProps.fill} />
+                    </RadialBarChart>
+                  </div>
+                  {/* Textanzeige des aktuellen Wertes */}
+                  <div className="value" style={{ textAlign: "center" }}>
+                    {formatDashboardValue(value)} {chartProps.unit}
+                  </div>
+                </Link>
+              );
+            })
         ) : (
           <p style={{ textAlign: "center" }}>Keine Typen gefunden.</p>
         )}
       </div>
-
       {loading && <p style={{ textAlign: "center" }}>Aktualisiere...</p>}
     </div>
   );
 }
-
-type HistoryEntry = {
-  typ: string;
-  einheit: string;
-  sensor: string;
-  wert: number;
-  zeitstempel: string;
-};
 
 function TypDetail({ darkMode, types }: { darkMode: boolean; types: Typ[] }) {
   const { typName } = useParams<{ typName: string }>();
@@ -235,13 +243,15 @@ function TypDetail({ darkMode, types }: { darkMode: boolean; types: Typ[] }) {
       const payload = await parseResponse(res);
       if (!res.ok) throw new Error(payload?.error || "Verlauf konnte nicht geladen werden");
       if (!Array.isArray(payload)) throw new Error("Ungültige Daten vom Server");
-      setHistory(payload.map((item: any) => ({
-        typ: item.typ,
-        einheit: item.einheit,
-        sensor: item.sensor,
-        wert: typeof item.wert === "number" ? item.wert : Number(item.wert),
-        zeitstempel: item.zeitstempel,
-      })));
+      setHistory(
+        payload.map((item: any) => ({
+          typ: item.typ,
+          einheit: item.einheit,
+          sensor: item.sensor,
+          wert: typeof item.wert === "number" ? item.wert : Number(item.wert),
+          zeitstempel: item.zeitstempel,
+        }))
+      );
     } catch (err: any) {
       setError(err?.message || "Fehler beim Laden des Verlaufs");
       setHistory([]);
@@ -251,9 +261,7 @@ function TypDetail({ darkMode, types }: { darkMode: boolean; types: Typ[] }) {
   };
 
   useEffect(() => {
-    if (typName) {
-      fetchHistory(zeitraum);
-    }
+    fetchHistory(zeitraum);
   }, [typName, zeitraum]);
 
   const formattedLabel = typName ? decodeURIComponent(typName) : "";
@@ -280,8 +288,7 @@ function TypDetail({ darkMode, types }: { darkMode: boolean; types: Typ[] }) {
     borderColor: darkMode ? "#475569" : "#d1d5db",
     color: darkMode ? "#e2e8f0" : "#0f172a",
   };
-  const props = getChartProps(formattedLabel, history[0]?.einheit, history[history.length - 1]?.wert ?? null);
-  const color = props.fill;
+  const chartProps = getChartProps(formattedLabel, history[0]?.einheit, history[history.length - 1]?.wert ?? null);
 
   const formatTooltipValue = (value: any, unit: string) => {
     if (value === null || value === undefined) return "-";
@@ -291,12 +298,14 @@ function TypDetail({ darkMode, types }: { darkMode: boolean; types: Typ[] }) {
 
   return (
     <div>
-      <Topbar title={formattedLabel || "Detail"} color={color} onRefresh={() => fetchHistory(zeitraum)} types={types} />
+      <Topbar title={formattedLabel || "Detail"} color={chartProps.fill} onRefresh={() => fetchHistory(zeitraum)} types={types} />
       <div className="detail-container">
         <div className="detail-card">
           <div className="detail-title-row">
             <h2>{formattedLabel || "Unbekannt"}</h2>
-            <Link to="/" className="back-link">⬅ Zurück</Link>
+            <Link to="/" className="back-link">
+              ⬅ Zurück
+            </Link>
           </div>
 
           <div className="range-selector">
@@ -332,10 +341,10 @@ function TypDetail({ darkMode, types }: { darkMode: boolean; types: Typ[] }) {
                     <Tooltip
                       contentStyle={tooltipStyle}
                       labelFormatter={formatChartTimestamp}
-                      formatter={(value: any) => [formatTooltipValue(value, props.unit), ""]}
+                      formatter={(value: any) => [formatTooltipValue(value, chartProps.unit), ""]}
                       separator=" "
                     />
-                    <Line type="monotone" dataKey="value" stroke={props.fill} strokeWidth={3} dot={false} />
+                    <Line type="monotone" dataKey="value" stroke={chartProps.fill} strokeWidth={3} dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
@@ -347,7 +356,7 @@ function TypDetail({ darkMode, types }: { darkMode: boolean; types: Typ[] }) {
           <div className="detail-summary">
             <div>
               <strong>Durchschnitt</strong>
-              <p>{average !== null ? `${average.toFixed(1)} ${props.unit}` : "-"}</p>
+              <p>{average !== null ? `${average.toFixed(1)} ${chartProps.unit}` : "-"}</p>
             </div>
             <div>
               <strong>Anzahl Messwerte</strong>
@@ -360,69 +369,69 @@ function TypDetail({ darkMode, types }: { darkMode: boolean; types: Typ[] }) {
   );
 }
 
-// 🔹 DETAIL
-function Detail({ title, value, unit, types, onRefresh }: any) {
-  const location = useLocation();
-  const color = pageColors[location.pathname] || "#168ed8";
-
-  return (
-    <div>
-      <Topbar title={title} color={color} onRefresh={onRefresh} types={types} />
-
-      <div style={{ textAlign: "center", padding: "50px" }}>
-        <h2>{value} {unit}</h2>
-        <p>blabla</p>
-        <Link to="/" className="back-link">⬅ Zurück</Link>
-      </div>
-    </div>
-  );
-}
-
-// 🔹 MAIN APP
 export default function Wetterstation() {
-
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [fontSize, setFontSize] = useState(16);
-
-  // 🌙 DARK MODE
-  const [darkMode, setDarkMode] = useState(() => {
-    return localStorage.getItem("darkMode") === "true";
-  });
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem("darkMode") === "true");
+  
+  // ========================================
+  // Data State
+  // ========================================
+  
+  // State: Verfügbare Datentypen vom Backend
+  const [types, setTypes] = useState<Typ[]>([]);
+  // State: Aktuelle Messwerte (Typ-Name => Wert)
+  const [currentValues, setCurrentValues] = useState<Record<string, number | null>>({});
+  
+  // ========================================
+  // WLAN State
+  // ========================================
+  
+  // State: Liste verfügbarer WLAN-Netzwerke
+  const [wifiNetworks, setWifiNetworks] = useState<WifiNetwork[]>([]);
+  // State: Ladeindikator für WLAN-Operationen
+  const [wifiLoading, setWifiLoading] = useState(false);
+  // State: Fehler bei WLAN-Operationen
+  const [wifiError, setWifiError] = useState<string | null>(null);
+  
+  // State: Aktueller WLAN-Verbindungsstatus
+  const [wifiStatus, setWifiStatus] = useState<{ ssid: string; security: string; signal: number; connected: boolean } | null>(null);
+  // State: Lade-Status für WLAN-Status-Abruf
+  const [wifiStatusLoading, setWifiStatusLoading] = useState(false);
+  // State: Fehler beim Laden des WLAN-Status
+  const [wifiStatusError, setWifiStatusError] = useState<string | null>(null);
+  
+  // State: Passwort-Eingabedialog offen/geschlossen
+  const [passwordPromptOpen, setPasswordPromptOpen] = useState(false);
+  // State: Ausgewähltes Netzwerk für Verbindung
+  const [selectedNetwork, setSelectedNetwork] = useState<WifiNetwork | null>(null);
+  // State: Eingegeben Passwort
+  const [wifiPassword, setWifiPassword] = useState("");
+  // State: Erfolgsmeldung nach Verbindung
+  const [connectStatus, setConnectStatus] = useState<string | null>(null);
 
   useEffect(() => {
     localStorage.setItem("darkMode", String(darkMode));
-
-    if (darkMode) {
-      document.body.classList.add("dark");
-    } else {
-      document.body.classList.remove("dark");
-    }
+    document.body.classList.toggle("dark", darkMode);
   }, [darkMode]);
 
   useEffect(() => {
     document.documentElement.style.fontSize = `${fontSize}px`;
   }, [fontSize]);
 
-  const [data, setData] = useState<WeatherData>({
-    temp: null,
-    hygro: null,
-    wind: null,
-    uv: null,
-  });
-  const [types, setTypes] = useState<Typ[]>([]);
-  const [currentValues, setCurrentValues] = useState<Record<string, number | null>>({});
-  const [sensors, setSensors] = useState<Sensor[]>([]);
-  const [sensorError, setSensorError] = useState<string | null>(null);
-  const [wifiNetworks, setWifiNetworks] = useState<{ ssid: string; security: string; signal: number }[]>([]);
-  const [wifiLoading, setWifiLoading] = useState(false);
-  const [wifiError, setWifiError] = useState<string | null>(null);
-  const [wifiStatus, setWifiStatus] = useState<{ ssid: string; security: string; signal: number; connected: boolean } | null>(null);
-  const [wifiStatusLoading, setWifiStatusLoading] = useState(false);
-  const [wifiStatusError, setWifiStatusError] = useState<string | null>(null);
-  const [passwordPromptOpen, setPasswordPromptOpen] = useState(false);
-  const [selectedNetwork, setSelectedNetwork] = useState<{ ssid: string; security: string } | null>(null);
-  const [wifiPassword, setWifiPassword] = useState("");
-  const [connectStatus, setConnectStatus] = useState<string | null>(null);
+  useEffect(() => {
+    fetchTypes();
+    fetchCurrentValues();
+    const interval = setInterval(fetchCurrentValues, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (settingsOpen) {
+      fetchWifiNetworks();
+      fetchWifiStatus();
+    }
+  }, [settingsOpen]);
 
   const parseResponse = async (res: Response) => {
     const text = await res.text();
@@ -438,7 +447,7 @@ export default function Wetterstation() {
     if (t.includes("temp") || t.includes("temperatur") || t.includes("°c")) return "temp";
     if (t.includes("hygro") || t.includes("luft") || t.includes("feucht")) return "hygro";
     if (t.includes("wind")) return "wind";
-    if (t.includes("uv")) return "uv";
+    if (t.includes("licht") || t.includes("lux") || t.includes("beleuchtungsstärke")) return "lux";
     return null;
   };
 
@@ -448,26 +457,18 @@ export default function Wetterstation() {
       const payload = await parseResponse(res);
       if (!res.ok) throw new Error(payload?.error || "Konnte aktuelle Werte nicht laden");
 
-      // payload expected: array of { typ, einheit, sensor, wert, zeitstempel }
-      const newData: WeatherData = { temp: null, hygro: null, wind: null, uv: null };
       const map: Record<string, number | null> = {};
       if (Array.isArray(payload)) {
         payload.forEach((item: any) => {
           const key = matchTypeKey(String(item.typ || ""));
           if (!key) return;
-          const val = item.wert;
-          if (typeof val === "number") newData[key as keyof WeatherData] = val;
-          else if (!isNaN(Number(val))) newData[key as keyof WeatherData] = Number(val);
-          // also keep raw map by type name
-          const rawVal = (typeof item.wert === 'number') ? item.wert : (!isNaN(Number(item.wert)) ? Number(item.wert) : null);
-          map[item.typ] = rawVal;
+          map[item.typ] = typeof item.wert === "number" ? item.wert : !isNaN(Number(item.wert)) ? Number(item.wert) : null;
         });
       }
 
-      setData(newData);
       setCurrentValues(map);
     } catch (err: any) {
-      console.log("Error fetching current values:", err);
+      console.error("Error fetching current values:", err);
     }
   };
 
@@ -476,56 +477,21 @@ export default function Wetterstation() {
       const res = await fetch("/api/typen");
       const payload = await parseResponse(res);
       if (!res.ok) throw new Error(payload?.error || "Konnte Typen nicht laden");
-      if (Array.isArray(payload)) setTypes(payload);
-      else setTypes([]);
+      setTypes(Array.isArray(payload) ? payload : []);
     } catch (err: any) {
-      console.log("Error fetching types:", err);
+      console.error("Error fetching types:", err);
       setTypes([]);
     }
   };
 
-  const [loading, setLoading] = useState(false);
-
-  const fetchSensors = async () => {
-    try {
-      setLoading(true);
-      setSensorError(null);
-      const res = await fetch(SENSOR_API_URL);
-      if (!res.ok) {
-        throw new Error(`Fehler beim Laden der Sensoren: ${res.status}`);
-      }
-      const newSensors = await res.json();
-      setSensors(newSensors);
-    } catch (err: any) {
-      console.log(err);
-      setSensorError(err?.message || "Sensordaten konnten nicht geladen werden.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const refreshDashboard = async () => {
-    await Promise.all([fetchSensors(), fetchTypes(), fetchCurrentValues()]);
+    await Promise.all([fetchTypes(), fetchCurrentValues()]);
   };
-
-  useEffect(() => {
-    fetchSensors();
-    fetchTypes();
-    fetchCurrentValues();
-    const iv = setInterval(fetchCurrentValues, 10000);
-    return () => clearInterval(iv);
-  }, []);
-
-  useEffect(() => {
-    if (settingsOpen) {
-      fetchWifiNetworks();
-      fetchWifiStatus();
-    }
-  }, [settingsOpen]);
 
   const networkRequiresPassword = (security: string) => {
     if (!security) return false;
-    return security.toLowerCase() !== "none" && security.toLowerCase() !== "offen";
+    const lower = security.toLowerCase();
+    return lower !== "none" && lower !== "offen";
   };
 
   const fetchWifiNetworks = async () => {
@@ -537,11 +503,13 @@ export default function Wetterstation() {
       const payload = await parseResponse(res);
       if (!res.ok) throw new Error(payload?.error || "Konnte WLAN-Netzwerke nicht laden");
       if (!Array.isArray(payload)) throw new Error("Ungültige WLAN-Daten vom Server");
-      setWifiNetworks(payload.map((item: any) => ({
-        ssid: String(item.ssid || ""),
-        security: String(item.security || ""),
-        signal: Number(item.signal ?? 0),
-      })));
+      setWifiNetworks(
+        payload.map((item: any) => ({
+          ssid: String(item.ssid || ""),
+          security: String(item.security || ""),
+          signal: Number(item.signal ?? 0),
+        }))
+      );
     } catch (err: any) {
       setWifiError(err?.message || "Fehler beim Laden der WLAN-Netze");
       setWifiNetworks([]);
@@ -600,7 +568,7 @@ export default function Wetterstation() {
     }
   };
 
-  const handleWifiConnect = (network: { ssid: string; security: string }) => {
+  const handleWifiConnect = (network: WifiNetwork) => {
     if (networkRequiresPassword(network.security)) {
       setSelectedNetwork(network);
       setPasswordPromptOpen(true);
@@ -613,51 +581,28 @@ export default function Wetterstation() {
     <div style={{ fontSize: `${fontSize}px` }}>
       <Router>
         <Routes>
-
-          <Route path="/" element={
-            <Dashboard types={types} currentValues={currentValues} onRefresh={refreshDashboard} loading={loading} sensors={sensors} sensorError={sensorError} />
-          } />
-
+          <Route path="/" element={<Dashboard types={types} currentValues={currentValues} onRefresh={refreshDashboard} loading={wifiLoading} />} />
           <Route path="/typ/:typName" element={<TypDetail darkMode={darkMode} types={types} />} />
-          <Route path="/temperatur" element={<Detail title="🌡️ Temperatur" value={data.temp} unit="°C" types={types} onRefresh={fetchCurrentValues} />} />
-          <Route path="/luft" element={<Detail title="💧 Luftfeuchtigkeit" value={data.hygro} unit="%" types={types} onRefresh={fetchCurrentValues} />} />
-          <Route path="/uv" element={<Detail title="☀️ UV Index" value={data.uv} unit="" types={types} onRefresh={fetchCurrentValues} />} />
-
         </Routes>
       </Router>
 
-      {/* ⚙️ BUTTON */}
-      <button className="settings-btn" onClick={() => {
-        setSettingsOpen(true);
-      }}>
+      <button className="settings-btn" onClick={() => setSettingsOpen(true)}>
         ⚙️
       </button>
 
-      {/* ⚙️ SETTINGS */}
       {settingsOpen && (
         <div className="settings-overlay">
           <div className="settings-modal">
-
             <h2>Einstellungen</h2>
 
             <div className="setting">
               <label>🌙 Dark Mode</label>
-              <input
-                type="checkbox"
-                checked={darkMode}
-                onChange={() => setDarkMode(!darkMode)}
-              />
+              <input type="checkbox" checked={darkMode} onChange={() => setDarkMode(!darkMode)} />
             </div>
 
             <div className="setting">
               <label>Schriftgröße</label>
-              <input
-                type="range"
-                min="12"
-                max="24"
-                value={fontSize}
-                onChange={(e) => setFontSize(Number(e.target.value))}
-              />
+              <input type="range" min="12" max="24" value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))} />
             </div>
 
             <div className="setting">
@@ -694,7 +639,9 @@ export default function Wetterstation() {
                           {network.security ? network.security : 'Offenes Netzwerk'} · Signal: {network.signal}%
                         </div>
                       </div>
-                      <button onClick={() => handleWifiConnect(network)} style={{ whiteSpace: 'nowrap' }}>Verbinden</button>
+                      <button onClick={() => handleWifiConnect(network)} style={{ whiteSpace: 'nowrap' }}>
+                        Verbinden
+                      </button>
                     </div>
                   )) : (
                     <p>Keine WLAN-Netze gefunden.</p>
@@ -707,7 +654,6 @@ export default function Wetterstation() {
             <button onClick={() => setSettingsOpen(false)} style={{ borderRadius: '5px' }}>
               Schließen
             </button>
-
           </div>
         </div>
       )}
@@ -718,17 +664,10 @@ export default function Wetterstation() {
             <h2>WLAN verbinden</h2>
             <p><strong>SSID:</strong> {selectedNetwork.ssid}</p>
             <p><strong>Sicherheit:</strong> {selectedNetwork.security || 'Offenes Netzwerk'}</p>
-
             <div className="setting">
               <label>Passwort</label>
-              <input
-                type="password"
-                value={wifiPassword}
-                onChange={(e) => setWifiPassword(e.target.value)}
-                style={{ width: '100%' }}
-              />
+              <input type="password" value={wifiPassword} onChange={(e) => setWifiPassword(e.target.value)} style={{ width: '100%' }} />
             </div>
-
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 16 }}>
               <button onClick={() => setPasswordPromptOpen(false)} style={{ borderRadius: '5px' }}>
                 Abbrechen

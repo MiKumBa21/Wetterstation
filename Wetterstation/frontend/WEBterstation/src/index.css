@@ -1,3 +1,9 @@
+/*
+  index.css
+  Globale Basisstile für die Wetterstation-Webanwendung.
+  Hier werden Schrift, Hintergrund und grundlegende Layoutregeln festgelegt.
+*/
+
 :root {
   font-family: system-ui, Arial, sans-serif;
   background: #eef2f7;

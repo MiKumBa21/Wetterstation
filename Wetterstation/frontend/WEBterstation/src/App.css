@@ -1,3 +1,10 @@
+/*
+  App.css
+  Basisstile für die React-Anwendung.
+  Dieses Stylesheet wird hauptsächlich für einfache Demo-Layouts
+  und Logo-Animationen aus dem Standard-Vite-Template verwendet.
+*/
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -5,6 +12,7 @@
   text-align: center;
 }
 
+/* Logo-Bild: definiert Standardgröße und Animationseigenschaften */
 .logo {
   height: 6em;
   padding: 1.5em;

@@ -1,7 +1,8 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vite.dev/config/
+// Vite-Konfiguration für das React-Frontend
+// Der Proxy leitet alle /api-Anfragen an den Backend-Server weiter.
 export default defineConfig({
   plugins: [react()],
   server: {
